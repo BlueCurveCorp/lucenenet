@@ -1,5 +1,6 @@
 using J2N.Text;
 using System;
+using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -49,6 +50,22 @@ namespace Lucene.Net.Support.Text
                         return true;
                 }
                 return false;
+            }
+
+            /// <summary>
+            /// Returns <c>true</c> if <paramref name="s"/> contains any character from <paramref name="charsToCompare"/>.
+            /// </summary>
+            /// <param name="charsToCompare">A <see cref="SearchValues{T}"/> instance built from the characters to check.</param>
+            /// <returns><c>true</c> if any <paramref name="charsToCompare"/> are found; otherwise, <c>false</c>.</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool ContainsAny(SearchValues<char> charsToCompare)
+            {
+                if (s is null)
+                    throw new ArgumentNullException(nameof(s));
+                if (charsToCompare is null)
+                    throw new ArgumentNullException(nameof(charsToCompare));
+
+                return s.AsSpan().ContainsAny(charsToCompare);
             }
 
             /// <summary>

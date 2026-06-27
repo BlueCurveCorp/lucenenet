@@ -111,7 +111,7 @@ namespace Lucene.Net.Configuration
                 .Where(kv => kv.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 .Select(kv => Segment(kv.Key, prefix.Length))
                 .Concat(earlierKeys)
-                .OrderBy(k => k);
+                .Order();
         }
 
         private static string Segment(string key, int prefixLength)

@@ -222,7 +222,7 @@ namespace Lucene.Net.Search
                 }
                 ComplexExplanation result = new ComplexExplanation();
                 float max = 0.0f, sum = 0.0f;
-                result.Description = outerInstance.tieBreakerMultiplier == 0.0f ? "max of:" : "max plus " + outerInstance.tieBreakerMultiplier + " times others of:";
+                result.Description = outerInstance.tieBreakerMultiplier == 0.0f ? "max of:" : $"max plus {outerInstance.tieBreakerMultiplier} times others of:";
                 foreach (Weight wt in m_weights)
                 {
                     Explanation e = wt.Explain(context, doc);

@@ -1,6 +1,7 @@
 using Lucene.Net.Support.Text;
 using Lucene.Net.Util;
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -34,7 +35,7 @@ namespace Lucene.Net.Support.IO
         private static readonly FileStreamOptions DefaultFileStreamOptionsCreateOnly = new FileStreamOptions { Access = FileAccess.Write, Share = FileShare.ReadWrite, BufferSize = 1 };
         public static readonly FileStreamOptions DefaultFileStreamOptions = new FileStreamOptions { Access = FileAccess.ReadWrite, BufferSize = 8192, Options = FileOptions.DeleteOnClose | FileOptions.RandomAccess };
 
-        private static readonly char[] INVALID_FILENAME_CHARS = Path.GetInvalidFileNameChars();
+        private static readonly SearchValues<char> INVALID_FILENAME_CHARS = SearchValues.Create(Path.GetInvalidFileNameChars());
 
         // LUCNENENET NOTE: Lookup the HResult value we are interested in for the current OS
         // by provoking the exception during initialization and caching its HResult value for later.
@@ -410,10 +411,10 @@ namespace Lucene.Net.Support.IO
                 throw new ArgumentNullException(nameof(options));
 
             // Ensure the strings passed don't contain invalid characters
-            if (prefix.ContainsAny(INVALID_FILENAME_CHARS))
-                throw new ArgumentException(string.Format("Prefix contains invalid characters. You may not use any of '{0}'", string.Join(", ", INVALID_FILENAME_CHARS)));
-            if (suffix != null && suffix.ContainsAny(INVALID_FILENAME_CHARS))
-                throw new ArgumentException(string.Format("Suffix contains invalid characters. You may not use any of '{0}'", string.Join(", ", INVALID_FILENAME_CHARS)));
+            if (prefix.AsSpan().ContainsAny(INVALID_FILENAME_CHARS))
+                throw new ArgumentException(string.Format("Prefix contains invalid characters. You may not use any of '{0}'", string.Join(", ", Path.GetInvalidFileNameChars())));
+            if (suffix != null && suffix.AsSpan().ContainsAny(INVALID_FILENAME_CHARS))
+                throw new ArgumentException(string.Format("Suffix contains invalid characters. You may not use any of '{0}'", string.Join(", ", Path.GetInvalidFileNameChars())));
             if (options.Access == FileAccess.Read)
                 throw new ArgumentException("Read-only for options.FileAccess is not supported.");
 

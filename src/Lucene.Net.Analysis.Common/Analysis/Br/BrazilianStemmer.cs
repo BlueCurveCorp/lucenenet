@@ -345,7 +345,7 @@ namespace Lucene.Net.Analysis.Br
                 return false;
             }
 
-            return value.Substring(value.Length - suffix.Length).Equals(suffix, StringComparison.Ordinal);
+            return value.AsSpan(value.Length - suffix.Length).Equals(suffix.AsSpan(), StringComparison.Ordinal);
         }
 
         /// <summary>

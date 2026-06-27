@@ -412,12 +412,15 @@ namespace Lucene.Net.Analysis.Miscellaneous
 
                     if (start != end) // non-empty match (header/trailer)
                     {
-                        string text = str.Substring(start, end - start);
+                        var span = str.AsSpan(start, end - start);
                         if (toLowerCase)
                         {
-                            text = text.ToLower(); // LUCENENET: Since this class is obsolete, we aren't going to bother with passing culture in the constructor.
+                            termAtt.SetEmpty().Append(span.ToString().ToLower());
                         }
-                        termAtt.SetEmpty().Append(text);
+                        else
+                        {
+                            termAtt.SetEmpty().Append(span);
+                        }
                         offsetAtt.SetOffset(CorrectOffset(start), CorrectOffset(end));
                         return true;
                     }

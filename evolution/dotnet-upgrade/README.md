@@ -5,12 +5,17 @@
 We are dropping **all** pre-.NET 10 targets. No `net8.0`, no `netstandard2.0`, no `net462`. The entire codebase moves to `net10.0` exclusively.
 
 This means:
+
 - **No** `#if NET10_0_OR_GREATER` conditionals — just write .NET 10 code directly
 - **No** `System.Memory` shim packages — spans are in-box
 - **No** feature-flag constants for older runtimes — all code assumes .NET 10 APIs
 - **No** `Microsoft.Bcl.Memory` polyfill — use the runtime's built-in types directly
 - **All** `.AsSpan()` calls become implicit conversions
 - **All** APIs can use `Span<T>`, `ReadOnlySpan<T>`, `Memory<T>` directly
+
+## C# (csharp) references
+
+- C# 14: `https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-14`
 
 ## Plan Overview
 
@@ -30,6 +35,7 @@ This means:
 ## Migration Checklist
 
 ### Infrastructure
+
 - [ ] Set `minimumSdkVersion` in `runbuild.ps1` to `10.0.301`
 - [ ] Pin SDK version in `global.json`
 - [ ] Simplify `Directory.Build.props` — single TFM, remove VS version checks
@@ -40,6 +46,7 @@ This means:
 - [ ] Bump test SDK and remaining package versions
 
 ### Code Optimization
+
 - [ ] Replace all `.AsSpan()` calls with implicit conversions
 - [ ] Adopt `field` keyword in properties with backing fields
 - [ ] Convert extension helpers to extension members (properties, operators)
@@ -52,6 +59,7 @@ This means:
 - [ ] Add `ArrayPool` in hot allocation paths
 
 ### Housekeeping
+
 - [ ] Remove `Microsoft.Bcl.Memory`, `System.Memory` package refs
 - [ ] Remove `Microsoft.NETFramework.ReferenceAssemblies`
 - [ ] Remove netstandard/netframework InternalsVisibleTo if any
@@ -61,6 +69,7 @@ This means:
 - [ ] Clean up legacy `NoWarn` entries specific to old TFMs
 
 ### Testing & Validation
+
 - [ ] Full test suite pass on `net10.0`
 - [ ] Baseline benchmark run (before optimizations)
 - [ ] Post-optimization benchmark comparison

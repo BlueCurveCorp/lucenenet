@@ -345,7 +345,7 @@ namespace Lucene.Net.Index
         private MergeThread CreateTask(IndexWriter writer, MergePolicy.OneMerge merge)
         {
             var count = Interlocked.Increment(ref _mergeThreadCount);
-            var name = string.Format("Lucene Merge Task #{0}", count);
+            var name = $"Lucene Merge Task #{count}";
 
             return new MergeThread(name, writer, merge, writer.infoStream, Verbose, _manualResetEvent, HandleMergeException, DoMerge);
         }

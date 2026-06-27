@@ -139,16 +139,11 @@ namespace Lucene.Net.Util
                 int lastPlus = attributeInterfaceType.FullName.LastIndexOf('+');
                 if (lastPlus == -1)
                 {
-                    return string.Concat(
-                        attributeInterfaceType.Namespace,
-                        ".",
-                        attributeInterfaceType.Name.AsSpan(1));
+                    return $"{attributeInterfaceType.Namespace}.{attributeInterfaceType.Name.AsSpan(1)}";
                 }
                 else
                 {
-                    return string.Concat(
-                        attributeInterfaceType.FullName.AsSpan(0, lastPlus + 1),
-                        attributeInterfaceType.Name.AsSpan(1));
+                    return $"{attributeInterfaceType.FullName.AsSpan(0, lastPlus + 1)}{attributeInterfaceType.Name.AsSpan(1)}";
                 }
             }
         }

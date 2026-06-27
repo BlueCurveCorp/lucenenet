@@ -171,16 +171,15 @@ namespace Lucene.Net.Analysis.Phonetic.Language
     /// </remarks>
     public class ColognePhonetic : IStringEncoder
     {
-        // Predefined char arrays for better performance and less GC load
-        private static readonly char[] AEIJOUY = new char[] { 'A', 'E', 'I', 'J', 'O', 'U', 'Y' };
-        private static readonly char[] SCZ = new char[] { 'S', 'C', 'Z' };
-        private static readonly char[] WFPV = new char[] { 'W', 'F', 'P', 'V' };
-        private static readonly char[] GKQ = new char[] { 'G', 'K', 'Q' };
-        private static readonly char[] CKQ = new char[] { 'C', 'K', 'Q' };
-        private static readonly char[] AHKLOQRUX = new char[] { 'A', 'H', 'K', 'L', 'O', 'Q', 'R', 'U', 'X' };
-        private static readonly char[] SZ = new char[] { 'S', 'Z' };
-        private static readonly char[] AHOUKQX = new char[] { 'A', 'H', 'O', 'U', 'K', 'Q', 'X' };
-        private static readonly char[] TDX = new char[] { 'T', 'D', 'X' };
+        private const string AEIJOUY = "AEIJOUY";
+        private const string SCZ = "SCZ";
+        private const string WFPV = "WFPV";
+        private const string GKQ = "GKQ";
+        private const string CKQ = "CKQ";
+        private const string AHKLOQRUX = "AHKLOQRUX";
+        private const string SZ = "SZ";
+        private const string AHOUKQX = "AHOUKQX";
+        private const string TDX = "TDX";
 
         /// <summary>
         /// This class is not thread-safe; the field <see cref="m_length"/> is mutable.
@@ -292,21 +291,6 @@ namespace Lucene.Net.Analysis.Phonetic.Language
         };
 
         /// <summary>
-        /// Returns whether the array contains the key, or not.
-        /// </summary>
-        private static bool ArrayContains(char[] arr, char key)
-        {
-            foreach (char element in arr)
-            {
-                if (element == key)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
         /// <para>
         /// Implements the <i>K&#246;lner Phonetik</i> algorithm.
         /// </para>
@@ -351,7 +335,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language
                     nextChar = '-';
                 }
 
-                if (ArrayContains(AEIJOUY, chr))
+                if (AEIJOUY.IndexOf(chr) >= 0)
                 {
                     code = '0';
                 }
@@ -367,19 +351,19 @@ namespace Lucene.Net.Analysis.Phonetic.Language
                 {
                     code = '1';
                 }
-                else if ((chr == 'D' || chr == 'T') && !ArrayContains(SCZ, nextChar))
+                else if ((chr == 'D' || chr == 'T') && SCZ.IndexOf(nextChar) < 0)
                 {
                     code = '2';
                 }
-                else if (ArrayContains(WFPV, chr))
+                else if (WFPV.IndexOf(chr) >= 0)
                 {
                     code = '3';
                 }
-                else if (ArrayContains(GKQ, chr))
+                else if (GKQ.IndexOf(chr) >= 0)
                 {
                     code = '4';
                 }
-                else if (chr == 'X' && !ArrayContains(CKQ, lastChar))
+                else if (chr == 'X' && CKQ.IndexOf(lastChar) < 0)
                 {
                     code = '4';
                     input.AddLeft('S');
@@ -393,7 +377,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language
                 {
                     if (lastCode == '/')
                     {
-                        if (ArrayContains(AHKLOQRUX, nextChar))
+                        if (AHKLOQRUX.IndexOf(nextChar) >= 0)
                         {
                             code = '4';
                         }
@@ -404,7 +388,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language
                     }
                     else
                     {
-                        if (ArrayContains(SZ, lastChar) || !ArrayContains(AHOUKQX, nextChar))
+                        if (SZ.IndexOf(lastChar) >= 0 || AHOUKQX.IndexOf(nextChar) < 0)
                         {
                             code = '8';
                         }
@@ -414,7 +398,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language
                         }
                     }
                 }
-                else if (ArrayContains(TDX, chr))
+                else if (TDX.IndexOf(chr) >= 0)
                 {
                     code = '8';
                 }

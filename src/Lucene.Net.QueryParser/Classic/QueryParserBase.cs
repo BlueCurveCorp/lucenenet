@@ -876,11 +876,11 @@ namespace Lucene.Net.QueryParsers.Classic
         internal virtual Query HandleBareFuzzy(string qfield, Token fuzzySlop, string termImage)
         {
             Query q;
-            string fuzzySlopStr = fuzzySlop.Image.Substring(1);
-            if (fuzzySlopStr == string.Empty || !J2N.Numerics.Single.TryParse(fuzzySlopStr, NumberStyle.Float, Locale, out float fms))
+            var fuzzySlopStr = fuzzySlop.Image.AsSpan(1);
+            if (fuzzySlopStr.IsEmpty || !J2N.Numerics.Single.TryParse(fuzzySlopStr, NumberStyle.Float, Locale, out float fms))
             {
                 // LUCENENET: Fallback on invariant culture
-                if (fuzzySlopStr == string.Empty || !J2N.Numerics.Single.TryParse(fuzzySlopStr, NumberStyle.Float, CultureInfo.InvariantCulture, out fms))
+                if (fuzzySlopStr.IsEmpty || !J2N.Numerics.Single.TryParse(fuzzySlopStr, NumberStyle.Float, CultureInfo.InvariantCulture, out fms))
                 {
                     fms = FuzzyMinSim;
                     /* Should this be handled somehow? (defaults to "no boost", if
@@ -906,8 +906,8 @@ namespace Lucene.Net.QueryParsers.Classic
             int s = PhraseSlop;  // default
             if (fuzzySlop != null)
             {
-                string fuzzySlopStr = fuzzySlop.Image.Substring(1);
-                if (fuzzySlopStr != string.Empty)
+                var fuzzySlopStr = fuzzySlop.Image.AsSpan(1);
+                if (!fuzzySlopStr.IsEmpty)
                 {
                     if (J2N.Numerics.Single.TryParse(fuzzySlopStr, NumberStyle.Float, Locale, out float f))
                     {

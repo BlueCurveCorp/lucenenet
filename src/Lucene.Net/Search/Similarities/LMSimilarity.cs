@@ -93,11 +93,11 @@ namespace Lucene.Net.Search.Similarities
             string coll = m_collectionModel.GetName();
             if (coll != null)
             {
-                return string.Format("LM {0} - {1}", GetName(), coll);
+                return $"LM {GetName()} - {coll}";
             }
             else
             {
-                return string.Format("LM {0}", GetName());
+                return $"LM {GetName()}";
             }
         }
 

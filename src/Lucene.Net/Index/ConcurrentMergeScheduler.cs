@@ -552,7 +552,7 @@ namespace Lucene.Net.Index
                 MergeThread thread = new MergeThread(this, writer, merge);
                 thread.SetThreadPriority((ThreadPriority)mergeThreadPriority);
                 thread.IsBackground = true;
-                thread.Name = "Lucene Merge Thread #" + m_mergeThreadCount++;
+                thread.Name = $"Lucene Merge Thread #{m_mergeThreadCount++}";
                 return thread;
             }
             finally

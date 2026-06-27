@@ -304,7 +304,7 @@ namespace Lucene.Net.Search
                             if (c.IsRequired)
                             {
                                 fail = true;
-                                Explanation r = new Explanation(0.0f, "no match on required clause (" + c.Query.ToString() + ")");
+                                Explanation r = new Explanation(0.0f, $"no match on required clause ({c.Query})");
                                 sumExpl.AddDetail(r);
                             }
                             continue;
@@ -320,7 +320,7 @@ namespace Lucene.Net.Search
                             }
                             else
                             {
-                                Explanation r = new Explanation(0.0f, "match on prohibited clause (" + c.Query.ToString() + ")");
+                                Explanation r = new Explanation(0.0f, $"match on prohibited clause ({c.Query})");
                                 r.AddDetail(e);
                                 sumExpl.AddDetail(r);
                                 fail = true;
@@ -332,7 +332,7 @@ namespace Lucene.Net.Search
                         }
                         else if (c.IsRequired)
                         {
-                            Explanation r = new Explanation(0.0f, "no match on required clause (" + c.Query.ToString() + ")");
+                            Explanation r = new Explanation(0.0f, $"no match on required clause ({c.Query})");
                             r.AddDetail(e);
                             sumExpl.AddDetail(r);
                             fail = true;
@@ -350,7 +350,7 @@ namespace Lucene.Net.Search
                 {
                     sumExpl.Match = false;
                     sumExpl.Value = 0.0f;
-                    sumExpl.Description = "Failure to match minimum number " + "of optional clauses: " + minShouldMatch;
+                    sumExpl.Description = $"Failure to match minimum number of optional clauses: {minShouldMatch}";
                     return sumExpl;
                 }
 
@@ -366,7 +366,7 @@ namespace Lucene.Net.Search
                 {
                     ComplexExplanation result = new ComplexExplanation(sumExpl.IsMatch, sum * coordFactor, "product of:");
                     result.AddDetail(sumExpl);
-                    result.AddDetail(new Explanation(coordFactor, "coord(" + coord + "/" + m_maxCoord + ")"));
+                    result.AddDetail(new Explanation(coordFactor, $"coord({coord}/{m_maxCoord})"));
                     return result;
                 }
             }
