@@ -24,17 +24,7 @@
   <Import Project="$(SolutionDir)TestTargetFramework.props" />
 
   <PropertyGroup>
-    <!-- Allow specific target framework to flow in from TestTargetFrameworks.props -->
-    <TargetFrameworks Condition=" '$(TargetFramework)' == '' ">net10.0;net9.0;net8.0</TargetFrameworks>
     <AssemblyTitle>Lucene.Net.Tests.Cli</AssemblyTitle>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" $(TargetFramework.StartsWith('net4')) Or $(TargetFramework.StartsWith('net5.')) Or $(TargetFramework.StartsWith('net6.')) ">
-    <!-- For CI, we don't publish the projects and exclude them from the test run by setting IsPublishable=false and IsTestProject=false -->
-    <IsPublishable>false</IsPublishable>
-    <IsTestProject>false</IsTestProject>
-    <!-- For the IDE, the above doesn't work. Redirect to a supported test framework instead. -->
-    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

@@ -14,16 +14,16 @@ This means:
 
 ## Plan Overview
 
-| Phase | Focus |
-|-------|-------|
-| **Phase 1** | Build infrastructure — SDK version, global.json, VS checks |
-| **Phase 2** | Target frameworks — drop everything except `net10.0` |
-| **Phase 3** | C# 14 language features — adopt across the codebase |
-| **Phase 4** | .NET 10 runtime & library optimizations — spans, devirtualization, SearchValues, LINQ |
-| **Phase 5** | Memory & GC optimization — ArrayPool, ValueTask, struct conversion |
-| **Phase 6** | Build configuration — TieredPGO, R2R for tools |
-| **Phase 7** | CI/CD pipeline — simplify to single-TFM matrix |
-| **Phase 8** | Performance benchmarking — baseline + post-opt comparison |
+| Phase | Focus | Plan |
+|-------|-------|-------|
+| **Phase 1** | Build infrastructure — SDK version, global.json, VS checks | `01-build-infrastructure.md` |
+| **Phase 2** | Target frameworks — drop everything except `net10.0` | `02-target-framework-strategy.md` |
+| **Phase 3** | C# 14 language features — adopt across the codebase | `03-csharp14-language-features.md` |
+| **Phase 4** | .NET 10 runtime & library optimizations — spans, devirtualization, SearchValues, LINQ | `04-runtime-optimizations.md` |
+| **Phase 5** | Memory & GC optimization — ArrayPool, ValueTask, struct conversion | `05-memory-gc-optimizations.md` |
+| **Phase 6** | Build configuration — TieredPGO, R2R for tools | `06-pgo-and-r2r.md` |
+| **Phase 7** | CI/CD pipeline — simplify to single-TFM matrix | `07-ci-cd-updates.md` |
+| **Phase 8** | Performance benchmarking — baseline + post-opt comparison | `08-benchmarking.md` |
 
 ---
 

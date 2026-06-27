@@ -7,7 +7,7 @@ Be **concise** when interacting with the user
 
 ## Project Overview
 
-Apache Lucene.NET is a **full-text search engine library** written in C#, ported from the Java Apache Lucene project. Version 4.8.0 (currently in Beta) targets .NET 8.0, .NET 6.0, .NET Standard 2.1/2.0, and .NET Framework 4.6.2+.
+Apache Lucene.NET is a **full-text search engine library** written in C#
 
 **Repository**: https://github.com/apache/lucenenet
 **Website**: https://lucenenet.apache.org
@@ -41,6 +41,10 @@ This project uses codebase-memory-mcp to maintain a knowledge graph of the codeb
 - **ALWAYS** each task is prioritized and have a unique identifier and a link to the target `./plans/<GLOBAL_TASK_NAME>/<TASK_ID>.md`
 - **ALWAYS** keep track of your work for each task using a memory file `./plans/<GLOBAL_TASK_NAME>/<TASK_ID>.md`
 - **ALWAYS** update the task status **Backlog** → **Todo** → **In Progess** → **Done**
+
+## Documentation
+
+- **ALWAYS** ensures documentation is up-to-date
 
 ---
 

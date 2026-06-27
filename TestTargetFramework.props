@@ -23,48 +23,8 @@
 <Project>
 
   <PropertyGroup>
-    <!-- Changing this setting will allow testing on all target frameworks within Visual Studio.
-    Note that the main libraries are multi-targeted, so this has no effect on how they are compiled,
-    this setting only affects the test projects. -->
-    <!--<TargetFramework>net472</TargetFramework>-->
-    <!--<TargetFramework>net48</TargetFramework>-->
-    <!--<TargetFramework>net8.0</TargetFramework>-->
-    <!--<TargetFramework>net9.0</TargetFramework>-->
     <TargetFramework>net10.0</TargetFramework>
-
-    <!-- Downgrade when using VS 2022 due to lack of support for net10.0. Testing .NET Fraemework on VS 2022
-        is possible, but be warned that it may produce several misleading build warnings due to lack of analyzer support for C# 14.0 features. -->
-    <TargetFramework Condition=" '$(TargetFramework)' == 'net10.0' And '$(IsLegacyVisualStudioVersion)' == 'true' ">net8.0</TargetFramework>
-
-    <!-- Allow the build script to pass in the test frameworks to build for.
-      This overrides the above TargetFramework setting.
-      LUCENENET TODO: Due to a parsing bug, we cannot pass a string with a ; to dotnet msbuild, so passing true as a workaround -->
-
-    <!-- Test Client to DLL target works as follows:
-      Test Client       | Target Under Test
-      net10.0           | net10.0
-      net9.0            | net8.0
-      net8.0            | net8.0
-      net48             | net462
-      net472            | netstandard2.0
-    -->
-
-    <!-- CI builds - always build all test frameworks (CI installs required SDKs) -->
-    <TargetFrameworks Condition=" '$(TestFrameworks)' == 'true' ">net10.0;net9.0;net8.0</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(TestFrameworks)' == 'true' And $([MSBuild]::IsOsPlatform('Windows'))  And '$(IsLegacyVisualStudioVersion)' != 'true' ">$(TargetFrameworks);net48;net472</TargetFrameworks>
-    <TargetFramework Condition=" '$(TargetFrameworks)' != '' "></TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup Label="Mismatched Target Framework (to override the target framework under test)">
-    <SetTargetFramework></SetTargetFramework>
-    <SetTargetFramework Condition=" '$(TargetFramework)' == 'net472' ">TargetFramework=netstandard2.0</SetTargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup Label="Assembly Publishing">
     <IsPublishable>true</IsPublishable>
-  </PropertyGroup>
-
-  <PropertyGroup Label="Test Settings">
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
