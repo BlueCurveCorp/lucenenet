@@ -14,11 +14,6 @@ namespace Lucene.Net.Support.IO
     internal sealed class FileStreamOptions
     {
         //private FileMode _mode = FileMode.Open;
-        private FileAccess _access = FileAccess.Write; // Changed from Read - we are creating a new file for writing
-        private FileShare _share = FileShare.Read;
-        private FileOptions _options;
-        //private long _preallocationSize;
-        private int _bufferSize = 8196; // NOTE: This is the default buffer size in Java's BufferedOutputStream
 
         ///// <summary>
         ///// One of the enumeration values that determines how to open or create the file.
@@ -44,7 +39,7 @@ namespace Lucene.Net.Support.IO
         /// <exception cref="T:System.ArgumentOutOfRangeException">When <paramref name="value" /> contains an invalid value.</exception>
         public FileAccess Access
         {
-            get => _access;
+            get => field;
             set
             {
                 if (value < FileAccess.Read || value > FileAccess.ReadWrite)
@@ -52,9 +47,9 @@ namespace Lucene.Net.Support.IO
                     throw new ArgumentOutOfRangeException(nameof(value), "Enum value was out of legal range.");
                 }
 
-                _access = value;
+                field = value;
             }
-        }
+        } = FileAccess.Write; // Changed from Read - we are creating a new file for writing
 
         /// <summary>
         /// A bitwise combination of the enumeration values that determines how the file will be shared by processes. The default value is <see cref="System.IO.FileShare.Read" />.
@@ -62,7 +57,7 @@ namespace Lucene.Net.Support.IO
         /// <exception cref="T:System.ArgumentOutOfRangeException">When <paramref name="value" /> contains an invalid value.</exception>
         public FileShare Share
         {
-            get => _share;
+            get => field;
             set
             {
                 // don't include inheritable in our bounds check for share
@@ -72,9 +67,9 @@ namespace Lucene.Net.Support.IO
                     throw new ArgumentOutOfRangeException(nameof(value), "Enum value was out of legal range.");
                 }
 
-                _share = value;
+                field = value;
             }
-        }
+        } = FileShare.Read;
 
         /// <summary>
         /// A bitwise combination of the enumeration values that specifies additional file options. The default value is <see cref="System.IO.FileOptions.None" />, which indicates synchronous IO.
@@ -82,7 +77,7 @@ namespace Lucene.Net.Support.IO
         /// <exception cref="T:System.ArgumentOutOfRangeException">When <paramref name="value" /> contains an invalid value.</exception>
         public FileOptions Options
         {
-            get => _options;
+            get => field;
             set
             {
                 // NOTE: any change to FileOptions enum needs to be matched here in the error validation
@@ -91,7 +86,7 @@ namespace Lucene.Net.Support.IO
                     throw new ArgumentOutOfRangeException(nameof(value), "Enum value was out of legal range.");
                 }
 
-                _options = value;
+                field = value;
             }
         }
 
@@ -114,8 +109,8 @@ namespace Lucene.Net.Support.IO
         /// <exception cref="T:System.ArgumentOutOfRangeException">When <paramref name="value" /> is negative.</exception>
         public int BufferSize
         {
-            get => _bufferSize;
-            set => _bufferSize = value >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(value), "Non-negative number required.");
-        }
+            get => field;
+            set => field = value >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(value), "Non-negative number required.");
+        } = 8196; // NOTE: This is the default buffer size in Java's BufferedOutputStream
     }
 }

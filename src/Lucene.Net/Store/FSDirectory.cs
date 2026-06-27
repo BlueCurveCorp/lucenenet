@@ -363,7 +363,7 @@ namespace Lucene.Net.Store
         protected virtual void EnsureCanWrite(string name)
         {
             // LUCENENET-specific: validate the name is valid for a FSDirectory
-            if (!name.IsValidSinglePathComponent())
+            if (!name.IsValidSinglePathComponent)
             {
                 throw new ArgumentException("File name is not valid for a FSDirectory", nameof(name));
             }
@@ -413,7 +413,7 @@ namespace Lucene.Net.Store
         protected virtual void EnsureCanRead(string name)
         {
             // LUCENENET-specific: validate the name is valid for a FSDirectory
-            if (!name.IsValidSinglePathComponent())
+            if (!name.IsValidSinglePathComponent)
             {
                 throw new ArgumentException("File name is not valid for a FSDirectory", nameof(name));
             }

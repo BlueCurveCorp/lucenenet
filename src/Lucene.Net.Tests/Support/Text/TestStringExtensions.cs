@@ -54,7 +54,7 @@ namespace Lucene.Net.Support.Text
         [LuceneNetSpecific]
         public void TestIsValidSinglePathComponent_AcceptsValidNames(string path)
         {
-            Assert.IsTrue(path.IsValidSinglePathComponent(),
+            Assert.IsTrue(path.IsValidSinglePathComponent,
                 $"expected '{path}' to be a valid single path component");
         }
 
@@ -78,7 +78,7 @@ namespace Lucene.Net.Support.Text
         [LuceneNetSpecific]
         public void TestIsValidSinglePathComponent_RejectsInvalidNames(string path)
         {
-            Assert.IsFalse(path.IsValidSinglePathComponent(),
+            Assert.IsFalse(path.IsValidSinglePathComponent,
                 $"expected '{path}' to be rejected as a single path component");
         }
     }

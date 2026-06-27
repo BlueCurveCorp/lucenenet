@@ -44,12 +44,12 @@ namespace Lucene.Net.Replicator
         public virtual Directory GetDirectory(string sessionId, string source)
         {
             // LUCENENET-specific: validate sessionId and source are valid for paths
-            if (!sessionId.IsValidSinglePathComponent())
+            if (!sessionId.IsValidSinglePathComponent)
             {
                 throw new ArgumentException("Session ID is not valid for replication", nameof(sessionId));
             }
 
-            if (!source.IsValidSinglePathComponent())
+            if (!source.IsValidSinglePathComponent)
             {
                 throw new ArgumentException("Source is not valid for replication", nameof(source));
             }
@@ -69,7 +69,7 @@ namespace Lucene.Net.Replicator
             }
 
             // LUCENENET-specific: validate sessionId is valid for paths
-            if (!sessionId.IsValidSinglePathComponent())
+            if (!sessionId.IsValidSinglePathComponent)
             {
                 throw new ArgumentException("Session ID is not valid for replication", nameof(sessionId));
             }

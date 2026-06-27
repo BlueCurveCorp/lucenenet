@@ -280,7 +280,7 @@ namespace Lucene.Net.Facet.Taxonomy.WriterCache
             CharBlockArray t = new CharBlockArray();
 
             // Test with a span
-            t.Append("12345678".AsSpan());
+            t.Append("12345678");
             Assert.AreEqual("12345678", t.ToString());
 
             // test with a span slice
@@ -289,7 +289,7 @@ namespace Lucene.Net.Facet.Taxonomy.WriterCache
 
             // test with a long span
             t = new CharBlockArray();
-            t.Append("01234567890123456789012345678901234567890123456789".AsSpan());
+            t.Append("01234567890123456789012345678901234567890123456789");
             Assert.AreEqual("01234567890123456789012345678901234567890123456789", t.ToString());
 
             // test with a long span slice

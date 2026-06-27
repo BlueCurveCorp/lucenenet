@@ -49,7 +49,7 @@ namespace Lucene.Net.Search
         /// <summary>
         /// The reference acquired from the <see cref="ReferenceManager{G}"/>.
         /// </summary>
-        public readonly T Reference => reference ?? throw new ObjectDisposedException(nameof(ReferenceContext<T>));
+        public readonly T Reference => reference ?? throw new ObjectDisposedException(nameof(ReferenceContext<>));
 
         /// <summary>
         /// Ensures the reference is properly de-referenced from its <see cref="ReferenceManager{G}"/>.

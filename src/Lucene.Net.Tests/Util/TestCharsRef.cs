@@ -730,7 +730,7 @@ namespace Lucene.Net.Util
         public static void Test_CopyChars()
         {
             var br = new CharsRef(new char[10]) { Offset = 0, Length = 0 };
-            br.CopyChars("hello".AsSpan());
+            br.CopyChars("hello");
 
             Assert.AreEqual("hello", br.AsSpan().ToString());
         }

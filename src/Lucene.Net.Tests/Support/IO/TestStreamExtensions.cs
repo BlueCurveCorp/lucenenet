@@ -244,7 +244,7 @@ namespace Lucene.Net.Support.IO
         public void TestWrite_Span()
         {
             byte[] bytes = Encoding.UTF8.GetBytes(fileString);
-            stream.Write(bytes.AsSpan()); // Method under test
+            stream.Write(bytes); // Method under test
 
             //stream.Write("Test String".ToCharArray());
             // stream.Dispose(); // LUCENENET - we will reuse stream

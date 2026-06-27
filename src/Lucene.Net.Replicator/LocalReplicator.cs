@@ -258,7 +258,7 @@ namespace Lucene.Net.Replicator
         public virtual Stream ObtainFile(string sessionId, string source, string fileName)
         {
             // LUCENENET-specific: validate the file name is valid for replication
-            if (!fileName.IsValidSinglePathComponent())
+            if (!fileName.IsValidSinglePathComponent)
             {
                 throw new ArgumentException("File name is not valid for replication", nameof(fileName));
             }

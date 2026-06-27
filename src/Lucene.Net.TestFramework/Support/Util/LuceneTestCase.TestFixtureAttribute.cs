@@ -129,14 +129,13 @@ namespace Lucene.Net.Util
             /// </summary>
             public Type TestOf
             {
-                get { return _testOf; }
+                get => field;
                 set
                 {
-                    _testOf = value;
+                    field = value;
                     Properties.Set(PropertyNames.TestOf, value.FullName);
                 }
             }
-            private Type _testOf;
 
             /// <summary>
             /// Gets or sets the ignore reason. May set RunState as a side effect.

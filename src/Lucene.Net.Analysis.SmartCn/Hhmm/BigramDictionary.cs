@@ -321,7 +321,7 @@ namespace Lucene.Net.Analysis.Cn.Smart.Hhmm
                             tmpword = currentStr + tmpword;
                         }
 
-                        ReadOnlySpan<char> carray = tmpword.AsSpan();
+                        ReadOnlySpan<char> carray = tmpword;
                         long hashId = Hash1(carray);
                         int index = GetAvaliableIndex(hashId, carray);
 

@@ -81,7 +81,7 @@ namespace Lucene.Net.Replicator
                     long length = reader.ReadInt64();
 
                     // LUCENENET-specific: validate that fileName is valid for replication
-                    if (!fileName.IsValidSinglePathComponent())
+                    if (!fileName.IsValidSinglePathComponent)
                     {
                         throw new ArgumentException("File name is not valid for replication", nameof(fileName));
                     }

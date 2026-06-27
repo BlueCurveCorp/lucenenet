@@ -596,7 +596,7 @@ namespace Lucene.Net.Util
         public static void Test_CopyChars()
         {
             var br = new BytesRef(new byte[10]) { Offset = 0, Length = 0 };
-            br.CopyChars("hello".AsSpan());
+            br.CopyChars("hello");
 
             Assert.AreEqual("hello", System.Text.Encoding.UTF8.GetString(br.AsSpan()));
         }
@@ -607,7 +607,7 @@ namespace Lucene.Net.Util
         {
             var br = new BytesRef(new byte[10]) { Offset = 0, Length = 0 };
             // Invalid surrogate pair -> should encode replacement U+FFFD
-            br.CopyChars("\uD800".AsSpan());
+            br.CopyChars("\uD800");
 
             string decoded = System.Text.Encoding.UTF8.GetString(br.AsSpan());
             Assert.AreEqual("\uFFFD", decoded);

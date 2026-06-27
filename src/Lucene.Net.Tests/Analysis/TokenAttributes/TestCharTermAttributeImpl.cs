@@ -338,7 +338,7 @@ namespace Lucene.Net.Analysis.TokenAttributes
             CharTermAttribute t = new CharTermAttribute();
 
             // Test with a span
-            t.Append("12345678".AsSpan());
+            t.Append("12345678");
             Assert.AreEqual("12345678", t.ToString());
 
             // test with a span slice
@@ -346,7 +346,7 @@ namespace Lucene.Net.Analysis.TokenAttributes
             Assert.AreEqual("1234567834", t.ToString());
 
             // test with a long span
-            t.SetEmpty().Append("01234567890123456789012345678901234567890123456789".AsSpan());
+            t.SetEmpty().Append("01234567890123456789012345678901234567890123456789");
             Assert.AreEqual("01234567890123456789012345678901234567890123456789", t.ToString());
 
             // test with a long span slice

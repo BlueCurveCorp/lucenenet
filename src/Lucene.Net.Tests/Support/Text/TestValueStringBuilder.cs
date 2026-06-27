@@ -88,7 +88,7 @@ namespace Lucene.Net.Text
         public void TestPreload()
         {
             Span<char> destination = stackalloc char[10];
-            "Hello".AsSpan().CopyTo(destination);
+            "Hello".CopyTo(destination);
             ValueStringBuilder sb = new(destination);
             try
             {

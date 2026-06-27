@@ -94,7 +94,7 @@ namespace Lucene.Net.Util
             get
             {
                 if (_disposed)
-                    throw AlreadyClosedException.Create(nameof(DisposableThreadLocal<T>), message: null);
+                    throw AlreadyClosedException.Create(nameof(DisposableThreadLocal<>), message: null);
                 return _values.Values;
             }
         }
@@ -109,7 +109,7 @@ namespace Lucene.Net.Util
             get
             {
                 if (_disposed)
-                    throw AlreadyClosedException.Create(nameof(DisposableThreadLocal<T>), message: null);
+                    throw AlreadyClosedException.Create(nameof(DisposableThreadLocal<>), message: null);
 
                 return _state != null && _values.ContainsKey(_state.selfReference);
             }
@@ -136,7 +136,7 @@ namespace Lucene.Net.Util
             get
             {
                 if (_disposed)
-                    throw AlreadyClosedException.Create(nameof(DisposableThreadLocal<T>), message: null);
+                    throw AlreadyClosedException.Create(nameof(DisposableThreadLocal<>), message: null);
                 (_state ??= new CurrentThreadState()).Register(this);
                 if (_values.TryGetValue(_state.selfReference, out var v) == false &&
                     _valueFactory != null)
@@ -150,7 +150,7 @@ namespace Lucene.Net.Util
             set
             {
                 if (_disposed)
-                    throw AlreadyClosedException.Create(nameof(DisposableThreadLocal<T>), message: null);
+                    throw AlreadyClosedException.Create(nameof(DisposableThreadLocal<>), message: null);
 
                 (_state ??= new CurrentThreadState()).Register(this);
                 _values[_state.selfReference] = value;

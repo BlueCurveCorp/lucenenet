@@ -148,7 +148,7 @@ namespace Lucene.Net.Analysis.Compound.Hyphenation
         /// </summary>
         // LUCENENET: string overload retained here for public API for non-C#-14 callers
         public void Insert(string key, char val)
-            => Insert(key.AsSpan(), val);
+            => Insert((ReadOnlySpan<char>)key, val);
 
         /// <summary>
         /// Branches are initially compressed, needing one node per key plus the size
@@ -346,7 +346,7 @@ namespace Lucene.Net.Analysis.Compound.Hyphenation
             int len = key.Length;
             // LUCENENET: add optimization for stackalloc and Span
             Span<char> strkey = (len + 1) * sizeof(char) > Constants.MaxStackByteLimit ? new char[len + 1] : stackalloc char[len + 1];
-            key.AsSpan().CopyTo(strkey);
+            key.CopyTo(strkey);
             strkey[len] = (char)0;
 
             return Find(strkey, 0);

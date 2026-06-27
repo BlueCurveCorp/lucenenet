@@ -69,7 +69,7 @@ namespace Lucene.Net.Support
             {
                 byte[] encoded = EncodeVInt32(value);
                 source.Clear();
-                encoded.AsSpan().CopyTo(source);
+                encoded.CopyTo(source);
 
                 bool ok = VIntUtils.TryReadVInt32(source, out int result, out int count);
 
@@ -101,7 +101,7 @@ namespace Lucene.Net.Support
             {
                 byte[] encoded = EncodeVInt64(value);
                 source.Clear();
-                encoded.AsSpan().CopyTo(source);
+                encoded.CopyTo(source);
 
                 bool ok = VIntUtils.TryReadVInt64(source, out long result, out int count);
 
