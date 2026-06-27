@@ -5,6 +5,7 @@ using Lucene.Net.Diagnostics;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -186,9 +187,20 @@ namespace Lucene.Net.Analysis.Util
             // Reduce allocations by using the stack and spans
             var source = new ReadOnlySpan<char>(buffer, offset, length);
             var destination = buffer.AsSpan(offset, length);
-            var spare = length * sizeof(char) <= Constants.MaxStackByteLimit ? stackalloc char[length] : new char[length];
-            source.ToLower(spare, CultureInfo.InvariantCulture);
-            spare.CopyTo(destination);
+            if (length * sizeof(char) <= Constants.MaxStackByteLimit)
+            {
+                Span<char> spare = stackalloc char[length];
+                source.ToLower(spare, CultureInfo.InvariantCulture);
+                spare.CopyTo(destination);
+            }
+            else
+            {
+                char[] rented = ArrayPool<char>.Shared.Rent(length);
+                var spare = rented.AsSpan(0, length);
+                source.ToLower(spare, CultureInfo.InvariantCulture);
+                spare.CopyTo(destination);
+                ArrayPool<char>.Shared.Return(rented);
+            }
 
             //// Slight optimization, eliminating a few method calls internally
             //CultureInfo.InvariantCulture.TextInfo
@@ -228,9 +240,20 @@ namespace Lucene.Net.Analysis.Util
             // Reduce 2 heap allocations by using the stack and spans
             var source = new ReadOnlySpan<char>(buffer, offset, length);
             var destination = buffer.AsSpan(offset, length);
-            var spare = length * sizeof(char) <= Constants.MaxStackByteLimit ? stackalloc char[length] : new char[length];
-            source.ToUpper(spare, CultureInfo.InvariantCulture);
-            spare.CopyTo(destination);
+            if (length * sizeof(char) <= Constants.MaxStackByteLimit)
+            {
+                Span<char> spare = stackalloc char[length];
+                source.ToUpper(spare, CultureInfo.InvariantCulture);
+                spare.CopyTo(destination);
+            }
+            else
+            {
+                char[] rented = ArrayPool<char>.Shared.Rent(length);
+                var spare = rented.AsSpan(0, length);
+                source.ToUpper(spare, CultureInfo.InvariantCulture);
+                spare.CopyTo(destination);
+                ArrayPool<char>.Shared.Return(rented);
+            }
 
             //// Slight optimization, eliminating a few method calls internally
             //CultureInfo.InvariantCulture.TextInfo

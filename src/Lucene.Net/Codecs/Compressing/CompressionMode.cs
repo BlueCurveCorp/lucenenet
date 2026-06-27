@@ -1,4 +1,5 @@
 using Lucene.Net.Diagnostics;
+using System.Buffers;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
@@ -210,17 +211,20 @@ namespace Lucene.Net.Codecs.Compressing
                     return;
                 }
 
-                byte[] compressedBytes = new byte[input.ReadVInt32()];
-                input.ReadBytes(compressedBytes, 0, compressedBytes.Length);
+                int compressedLength = input.ReadVInt32();
+                byte[] compressedBytes = ArrayPool<byte>.Shared.Rent(compressedLength);
+                input.ReadBytes(compressedBytes, 0, compressedLength);
                 byte[] decompressedBytes = null;
 
                 using (MemoryStream decompressedStream = new MemoryStream())
-                using (MemoryStream compressedStream = new MemoryStream(compressedBytes))
+                using (MemoryStream compressedStream = new MemoryStream(compressedBytes, 0, compressedLength))
                 {
                     using DeflateStream dStream = new DeflateStream(compressedStream, System.IO.Compression.CompressionMode.Decompress);
                     dStream.CopyTo(decompressedStream);
                     decompressedBytes = decompressedStream.ToArray();
                 }
+
+                ArrayPool<byte>.Shared.Return(compressedBytes);
 
                 if (decompressedBytes.Length != originalLength)
                 {

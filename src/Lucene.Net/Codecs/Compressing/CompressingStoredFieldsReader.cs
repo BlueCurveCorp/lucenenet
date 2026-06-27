@@ -2,6 +2,7 @@ using Lucene.Net.Codecs.Lucene40;
 using Lucene.Net.Diagnostics;
 using Lucene.Net.Support;
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 
 namespace Lucene.Net.Codecs.Compressing
@@ -202,11 +203,12 @@ namespace Lucene.Net.Codecs.Compressing
 
                 case CompressingStoredFieldsWriter.STRING:
                     length = @in.ReadVInt32();
-                    data = new byte[length];
-                    @in.ReadBytes(data, 0, length);
+                    byte[] rentedStr = ArrayPool<byte>.Shared.Rent(length);
+                    @in.ReadBytes(rentedStr, 0, length);
 #pragma warning disable 612, 618
-                    visitor.StringField(info, IOUtils.ENCODING_UTF_8_NO_BOM.GetString(data));
+                    visitor.StringField(info, IOUtils.ENCODING_UTF_8_NO_BOM.GetString(rentedStr, 0, length));
 #pragma warning restore 612, 618
+                    ArrayPool<byte>.Shared.Return(rentedStr);
                     break;
 
                 case CompressingStoredFieldsWriter.NUMERIC_INT32:
