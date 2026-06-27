@@ -34,9 +34,6 @@ namespace Lucene.Net.Util
     /// <para/>
     /// @lucene.internal
     /// </summary>
-#if FEATURE_SERIALIZABLE
-    [Serializable]
-#endif
     // LUCENENET specific: Not implementing ICloneable per Microsoft's recommendation
     public sealed class CharsRef : IComparable<CharsRef>, ICharSequence, IEquatable<CharsRef> // LUCENENET specific - implemented IEquatable<CharsRef>
     {
@@ -373,14 +370,9 @@ namespace Lucene.Net.Util
         [Obsolete("this comparer is only a transition mechanism")]
         public static IComparer<CharsRef> UTF16SortedAsUTF8Comparer => utf16SortedAsUTF8SortOrder;
 
-        /// @deprecated this comparer is only a transition mechanism
-        [Obsolete("this comparer is only a transition mechanism")]
-        // LUCENENET: It is no longer good practice to use binary serialization.
-        // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE
-        [Serializable]
-#endif
-        private class Utf16SortedAsUtf8Comparer : IComparer<CharsRef>
+    /// @deprecated this comparer is only a transition mechanism
+    [Obsolete("this comparer is only a transition mechanism")]
+    private class Utf16SortedAsUtf8Comparer : IComparer<CharsRef>
         {
             // Only singleton
             internal Utf16SortedAsUtf8Comparer()
@@ -527,11 +519,7 @@ namespace Lucene.Net.Util
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<char> AsSpan() // LUCENENET specific
         {
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chars), Offset), Length);
-#else
-            return new ReadOnlySpan<char>(chars, Offset, Length);
-#endif
         }
 
         /// <summary>
@@ -553,12 +541,8 @@ namespace Lucene.Net.Util
             if (totalOffset > chars.Length)
                 throw new ArgumentOutOfRangeException(nameof(start));
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chars),
                 (nint)totalOffset /* force zero-extension */), Length - start);
-#else
-            return new ReadOnlySpan<char>(chars, checked((int)totalOffset), Length - start);
-#endif
         }
 
         /// <summary>
@@ -594,12 +578,8 @@ namespace Lucene.Net.Util
             if (totalOffset + (uint)length > (uint)chars.Length)
                 throw new ArgumentOutOfRangeException(nameof(start));
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chars),
                 (nint)totalOffset /* force zero-extension */), length);
-#else
-            return new ReadOnlySpan<char>(chars, checked((int)totalOffset), length);
-#endif
         }
 
         /// <summary>
@@ -621,12 +601,8 @@ namespace Lucene.Net.Util
             if (totalOffset > chars.Length)
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chars),
                 (nint)totalOffset /* force zero-extension */), Length - actualIndex);
-#else
-            return new ReadOnlySpan<char>(chars, checked((int)totalOffset), Length - actualIndex);
-#endif
         }
 
         /// <summary>
@@ -651,12 +627,8 @@ namespace Lucene.Net.Util
             if (totalOffset + (uint)length > (uint)chars.Length)
                 throw new ArgumentOutOfRangeException(nameof(start));
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chars),
                 (nint)totalOffset /* force zero-extension */), length);
-#else
-            return new ReadOnlySpan<char>(chars, checked((int)totalOffset), length);
-#endif
         }
 
         #endregion AsSpan

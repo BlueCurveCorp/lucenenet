@@ -124,14 +124,7 @@ namespace Lucene.Net.Support
 
             private static IArrayFiller<T> LoadArrayFiller()
             {
-#if FEATURE_ARRAY_FILL
-                if (PlatformDetection.IsNetCore)
-                    return new SpanFillArrayFiller<T>();
-
                 return new ArrayFillArrayFiller<T>();
-#else
-                return new SpanFillArrayFiller<T>();
-#endif
             }
 
         }
@@ -141,7 +134,6 @@ namespace Lucene.Net.Support
             void Fill(T[] array, T value, int startIndex, int count);
         }
 
-#if FEATURE_ARRAY_FILL
         private sealed class ArrayFillArrayFiller<T> : IArrayFiller<T>
         {
             public void Fill(T[] array, T value, int startIndex, int count)
@@ -149,7 +141,6 @@ namespace Lucene.Net.Support
                 Array.Fill(array, value, startIndex, count);
             }
         }
-#endif
         private sealed class SpanFillArrayFiller<T> : IArrayFiller<T>
         {
             public void Fill(T[] array, T value, int startIndex, int count)

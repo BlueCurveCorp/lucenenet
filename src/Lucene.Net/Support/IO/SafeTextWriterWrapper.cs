@@ -66,18 +66,10 @@ namespace Lucene.Net.Support.IO
             set => Run(() => textWriter.NewLine = value);
         }
 
-#if FEATURE_TEXTWRITER_CLOSE
         public override void Close()
         {
             Run(() => textWriter.Close());
         }
-#endif
-#if FEATURE_TEXTWRITER_CREATEOBJREF
-        public override System.Runtime.Remoting.ObjRef CreateObjRef(Type requestedType)
-        {
-            return Run(() => textWriter.CreateObjRef(requestedType));
-        }
-#endif
 
         public override bool Equals(object obj)
         {
@@ -99,14 +91,12 @@ namespace Lucene.Net.Support.IO
             return Run(() => textWriter.GetHashCode());
         }
 
-#if FEATURE_TEXTWRITER_INITIALIZELIFETIMESERVICE
         // LUCENENET: We don't override this on .NET Core, it throws a
         // PlatformNotSupportedException, which is the behavior we want.
         public override object InitializeLifetimeService()
         {
             return Run(() => textWriter.InitializeLifetimeService());
         }
-#endif
 
         public override string ToString()
         {

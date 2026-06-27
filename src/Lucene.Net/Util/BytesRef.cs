@@ -41,9 +41,6 @@ namespace Lucene.Net.Util
     /// is <b>wrong</b>, as it does not respect the correct character set
     /// and may return wrong results (depending on the platform's defaults)!
     /// </summary>
-#if FEATURE_SERIALIZABLE
-    [Serializable]
-#endif
     // LUCENENET specific: Not implementing ICloneable per Microsoft's recommendation
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public sealed class BytesRef : IComparable<BytesRef>, IComparable, IEquatable<BytesRef> // LUCENENET specific - implemented IComparable for FieldComparator, IEquatable<BytesRef>
@@ -534,11 +531,7 @@ namespace Lucene.Net.Util
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<byte> AsSpan() // LUCENENET specific
         {
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<byte>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(bytes), Offset), Length);
-#else
-            return new ReadOnlySpan<byte>(bytes, Offset, Length);
-#endif
         }
 
         /// <summary>
@@ -560,12 +553,8 @@ namespace Lucene.Net.Util
             if (totalOffset > bytes.Length)
                 throw new ArgumentOutOfRangeException(nameof(start));
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<byte>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(bytes),
                 (nint)totalOffset /* force zero-extension */), Length - start);
-#else
-            return new ReadOnlySpan<byte>(bytes, checked((int)totalOffset), Length - start);
-#endif
         }
 
         /// <summary>
@@ -601,12 +590,8 @@ namespace Lucene.Net.Util
             if (totalOffset + (uint)length > (uint)bytes.Length)
                 throw new ArgumentOutOfRangeException(nameof(start));
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<byte>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(bytes),
                 (nint)totalOffset /* force zero-extension */), length);
-#else
-            return new ReadOnlySpan<byte>(bytes, checked((int)totalOffset), length);
-#endif
         }
 
         /// <summary>
@@ -628,12 +613,8 @@ namespace Lucene.Net.Util
             if (totalOffset > bytes.Length)
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<byte>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(bytes),
                 (nint)totalOffset /* force zero-extension */), Length - actualIndex);
-#else
-            return new ReadOnlySpan<byte>(bytes, checked((int)totalOffset), Length - actualIndex);
-#endif
         }
 
         /// <summary>
@@ -658,12 +639,8 @@ namespace Lucene.Net.Util
             if (totalOffset + (uint)length > (uint)bytes.Length)
                 throw new ArgumentOutOfRangeException(nameof(start));
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<byte>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(bytes),
                 (nint)totalOffset /* force zero-extension */), length);
-#else
-            return new ReadOnlySpan<byte>(bytes, checked((int)totalOffset), length);
-#endif
         }
 
         #endregion AsSpan
@@ -787,11 +764,6 @@ namespace Lucene.Net.Util
         #endregion AsMemory
     }
 
-    // LUCENENET: It is no longer good practice to use binary serialization.
-    // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE
-    [Serializable]
-#endif
     internal class Utf8SortedAsUnicodeComparer : IComparer<BytesRef>
     {
         public static readonly Utf8SortedAsUnicodeComparer Instance = new Utf8SortedAsUnicodeComparer();
@@ -828,11 +800,6 @@ namespace Lucene.Net.Util
 
     /// @deprecated this comparer is only a transition mechanism
     [Obsolete("this comparer is only a transition mechanism")]
-    // LUCENENET: It is no longer good practice to use binary serialization.
-    // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE
-    [Serializable]
-#endif
     internal class Utf8SortedAsUtf16Comparer : IComparer<BytesRef>
     {
         // Only singleton

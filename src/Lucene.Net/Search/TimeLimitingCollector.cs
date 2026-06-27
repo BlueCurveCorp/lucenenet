@@ -3,13 +3,6 @@ using J2N.Threading.Atomic;
 using Lucene.Net.Support.Threading;
 using System;
 
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-using System.ComponentModel;
-using System.Runtime.Serialization;
-#endif
-#if FEATURE_CODE_ACCESS_SECURITY
-using System.Security.Permissions;
-#endif
 using System.Threading;
 
 namespace Lucene.Net.Search
@@ -44,11 +37,6 @@ namespace Lucene.Net.Search
     {
         /// <summary>
         /// Thrown when elapsed search time exceeds allowed search time. </summary>
-        // LUCENENET: It is no longer good practice to use binary serialization.
-        // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-        [Serializable]
-#endif
         public class TimeExceededException : Exception, IRuntimeException // LUCENENET specific: Added IRuntimeException for identification of the Java superclass in .NET
         {
             private readonly long timeAllowed; // LUCENENET: marked readonly
@@ -68,38 +56,6 @@ namespace Lucene.Net.Search
                 : base(message)
             {
             }
-
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-            /// <summary>
-            /// Initializes a new instance of this class with serialized data.
-            /// </summary>
-            /// <param name="info">The <see cref="SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
-            /// <param name="context">The <see cref="StreamingContext"/> that contains contextual information about the source or destination.</param>
-            [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            protected TimeExceededException(SerializationInfo info, StreamingContext context)
-                : base(info, context)
-            {
-                timeAllowed = info.GetInt64("timeAllowed");
-                timeElapsed = info.GetInt64("timeElapsed");
-                lastDocCollected = info.GetInt32("lastDocCollected");
-            }
-
-#if FEATURE_CODE_ACCESS_SECURITY
-            [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
-#endif
-            [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-            public override void GetObjectData(SerializationInfo info, StreamingContext context)
-#pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
-            {
-                base.GetObjectData(info, context);
-                info.AddValue("timeAllowed", timeAllowed, typeof(long));
-                info.AddValue("timeElapsed", timeElapsed, typeof(long));
-                info.AddValue("lastDocCollected", lastDocCollected, typeof(int));
-            }
-#endif
 
             /// <summary>
             /// Returns allowed time (milliseconds). </summary>

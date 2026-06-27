@@ -2,9 +2,6 @@
 using Lucene.Net.Support;
 using Lucene.Net.Support.Threading;
 using Lucene.Net.Util;
-#if !FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR
-using Lucene.Net.Util.Events;
-#endif
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -69,11 +66,6 @@ namespace Lucene.Net.Facet.Taxonomy
     {
         private readonly OrdinalsReader source;
 
-#if !FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR
-        // LUCENENET specific: Add weak event handler for .NET Standard 2.0 and .NET Framework, since we don't have an enumerator to use
-        private readonly IEventAggregator eventAggregator = new EventAggregator();
-#endif
-
         private readonly ConditionalWeakTable<object, CachedOrds> ordsCache = new ConditionalWeakTable<object, CachedOrds>();
         private readonly object syncLock = new object();
 
@@ -101,10 +93,6 @@ namespace Lucene.Net.Facet.Taxonomy
                     // which also means we don't need conditional compilation because ConditionalWeakTable
                     // doesn't support this[index].
                     ordsCache.Add(cacheKey, ords);
-#if !FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR
-                    // LUCENENET specific: Add weak event handler for .NET Standard 2.0 and .NET Framework, since we don't have an enumerator to use
-                    context.Reader.SubscribeToGetCacheKeysEvent(eventAggregator.GetEvent<WeakEvents.GetCacheKeysEvent>());
-#endif
                 }
                 return ords;
             }
@@ -221,20 +209,8 @@ namespace Lucene.Net.Facet.Taxonomy
             try
             {
                 cachedOrdsList = new List<CachedOrds>();
-#if FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR
                 foreach (var pair in ordsCache)
                     cachedOrdsList.Add(pair.Value);
-#else
-                // LUCENENET specific - since .NET Standard 2.0 and .NET Framework don't have a ConditionalWeakTable enumerator,
-                // we use a weak event to retrieve the CachedOrds instances. We look each of these up here to avoid the need
-                // to attach events to the CachedOrds instances themselves (thus using the existing IndexReader.Dispose()
-                // method to detach the events rather than using a finalizer in CachedOrds to ensure they are cleaned up).
-                var e = new WeakEvents.GetCacheKeysEventArgs();
-                eventAggregator.GetEvent<WeakEvents.GetCacheKeysEvent>().Publish(e);
-                foreach (var key in e.CacheKeys)
-                    if (ordsCache.TryGetValue(key, out CachedOrds value))
-                        cachedOrdsList.Add(value);
-#endif
             }
             finally
             {

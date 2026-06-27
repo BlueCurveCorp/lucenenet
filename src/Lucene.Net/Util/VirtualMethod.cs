@@ -2,9 +2,6 @@ using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-#if !FEATURE_TYPE_GETMETHOD__BINDINGFLAGS_PARAMS
-using System.Linq;
-#endif
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using JCG = J2N.Collections.Generic;
@@ -217,28 +214,7 @@ namespace Lucene.Net.Util
 
         private static MethodInfo GetMethod(Type clazz, string methodName, BindingFlags bindingFlags, Type[] methodParameters) // LUCENENET: CA1822: Mark members as static
         {
-#if FEATURE_TYPE_GETMETHOD__BINDINGFLAGS_PARAMS
             return clazz.GetMethod(methodName, bindingFlags, null, methodParameters, null);
-#else
-            var methods = clazz.GetTypeInfo().GetMethods(bindingFlags).Where(x => {
-                return x.Name.Equals(methodName, StringComparison.Ordinal)
-                    && x.GetParameters().Select(y => y.ParameterType).SequenceEqual(methodParameters);
-                }).ToArray();
-
-            if (methods.Length == 0)
-            {
-                return default;
-            }
-            else if (methods.Length == 1)
-            {
-                return methods[0];
-            }
-            else
-            {
-                var formatted = string.Format("Found more than one match for type {0}, methodName {1}, bindingFlags {2}, parameters {3}", clazz, methodName, bindingFlags, methodParameters);
-                throw new AmbiguousMatchException(formatted);
-            }
-#endif
         }
     }
 }

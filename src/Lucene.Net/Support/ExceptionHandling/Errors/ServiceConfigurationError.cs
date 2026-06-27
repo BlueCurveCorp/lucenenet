@@ -47,11 +47,6 @@ namespace Lucene
     /// For all Lucene exceptions that subclass Error, implement the <see cref="IError"/>
     /// interface, then choose the most logical exception type in .NET to subclass.
     /// </summary>
-    // LUCENENET: It is no longer good practice to use binary serialization.
-    // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-    [Serializable]
-#endif
     internal class ServiceConfigurationError : InvalidOperationException, IError
     {
         [Obsolete("Use ServiceConfigurationError.Create() instead.", error: true)]
@@ -92,19 +87,6 @@ namespace Lucene
         {
         }
 
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-        /// <summary>
-        /// Initializes a new instance of this class with serialized data.
-        /// </summary>
-        /// <param name="info">The <see cref="SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="StreamingContext"/> that contains contextual information about the source or destination.</param>
-        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected ServiceConfigurationError(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
-#endif
 
         // Static factory methods
 

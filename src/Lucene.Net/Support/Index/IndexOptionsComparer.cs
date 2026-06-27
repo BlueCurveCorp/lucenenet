@@ -29,11 +29,6 @@ namespace Lucene.Net.Index
     /// </summary>
     // See: GH-376
 
-    // LUCENENET: It is no longer good practice to use binary serialization.
-    // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE
-    [Serializable]
-#endif
     public sealed class IndexOptionsComparer : IComparer<IndexOptions>
     {
         private IndexOptionsComparer() { } // No instance

@@ -100,11 +100,7 @@ namespace Lucene.Net.Store
 
         private static bool LoadIsFileStreamLockingPlatform()
         {
-#if FEATURE_FILESTREAM_LOCK
             return Constants.WINDOWS; // LUCENENET: See: https://github.com/dotnet/corefx/issues/5964
-#else
-            return false;
-#endif
         }
 
         private static int? LoadFileLockViolationHResult()
@@ -627,9 +623,7 @@ namespace Lucene.Net.Store
     }
 
     // Uses FileStream locking of file pages.
-#if FEATURE_SUPPORTEDOSPLATFORMATTRIBUTE
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
     internal class NativeFSLock : Lock
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
@@ -826,13 +820,4 @@ namespace Lucene.Net.Store
         }
     }
 
-#if !FEATURE_FILESTREAM_LOCK
-    internal static class FileStreamExtensions
-    {
-        // Dummy lock method to ensure we can compile even if the feature is unavailable
-        public static void Lock(this FileStream stream, long position, long length)
-        {
-        }
-    }
-#endif
 }

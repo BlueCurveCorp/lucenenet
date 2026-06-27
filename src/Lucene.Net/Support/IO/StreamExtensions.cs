@@ -6,11 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-#if !FEATURE_RANDOMACCESS_READ
-using Lucene.Net.Support.Threading;
-using System.Runtime.CompilerServices;
-#endif
-
 namespace Lucene.Net.Support.IO
 {
     /*
@@ -43,9 +38,6 @@ namespace Lucene.Net.Support.IO
     /// </summary>
     internal static class StreamExtensions
     {
-#if !FEATURE_RANDOMACCESS_READ
-        private static readonly ConditionalWeakTable<Stream, object> lockCache = new ConditionalWeakTable<Stream, object>();
-#endif
 
         /// <summary>
         /// Reads a sequence of bytes from a <see cref="Stream"/> to the given <see cref="Span{Byte}"/>,
@@ -85,39 +77,7 @@ namespace Lucene.Net.Support.IO
             if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
 
-#if FEATURE_RANDOMACCESS_READ
             return RandomAccess.Read(stream.SafeFileHandle, destination, position);
-#else
-            if (position < 0)
-                throw new ArgumentOutOfRangeException(nameof(position));
-            if (!stream.CanSeek)
-                throw new NotSupportedException("Stream does not support seeking.");
-            if (!stream.CanRead)
-                throw new NotSupportedException("Stream does not support reading.");
-            if (position > stream.Length)
-                return 0;
-
-            int read;
-            object readLock = lockCache.GetOrCreateValue(stream);
-            UninterruptableMonitor.Enter(readLock);
-            try
-            {
-                long originalPosition = stream.Position;
-                stream.Seek(position, SeekOrigin.Begin);
-
-                read = stream.Read(destination);
-
-                // Per Java's FileChannel.Read(), we don't want to alter the position
-                // of the stream, so we return it as it was originally.
-                stream.Seek(originalPosition, SeekOrigin.Begin);
-            }
-            finally
-            {
-                UninterruptableMonitor.Exit(readLock);
-            }
-
-            return read;
-#endif
         }
 
         /// <summary>
@@ -158,83 +118,7 @@ namespace Lucene.Net.Support.IO
             }
         }
 
-#if !FEATURE_STREAM_READEXACTLY
-        /// <summary>
-        /// Reads bytes from the stream into <paramref name="buffer"/> until it is completely filled.
-        /// </summary>
-        /// <param name="stream">The stream to read from.</param>
-        /// <param name="buffer">The buffer to read into.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
-        /// <exception cref="EndOfStreamException">The end of the stream is reached before filling the buffer.</exception>
-        /// <remarks>
-        /// This method is a polyfill for platforms (prior to .NET 7) that do not have the ReadExactly method.
-        /// </remarks>
-        public static void ReadExactly(this Stream stream, Span<byte> buffer)
-        {
-            if (stream is null)
-                throw new ArgumentNullException(nameof(stream));
 
-            byte[] sharedBuffer = ArrayPool<byte>.Shared.Rent(buffer.Length);
-            try
-            {
-                while (buffer.Length > 0)
-                {
-                    int numRead = stream.Read(sharedBuffer, 0, buffer.Length);
-
-                    if (numRead == 0)
-                    {
-                        throw new EndOfStreamException(SR.IO_EOF_ReadBeyondEOF);
-                    }
-
-                    new ReadOnlySpan<byte>(sharedBuffer, 0, numRead).CopyTo(buffer);
-                    buffer = buffer.Slice(numRead);
-                }
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(sharedBuffer);
-            }
-        }
-
-        /// <summary>
-        /// Reads bytes asynchronously from the stream into <paramref name="buffer"/> until it is completely filled.
-        /// </summary>
-        /// <param name="stream">The stream to read from.</param>
-        /// <param name="buffer">The buffer to read into.</param>
-        /// <param name="offset">The byte offset in <paramref name="buffer"/> at which to begin writing data read from the stream.</param>
-        /// <param name="count">The count of bytes to read.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
-        /// <exception cref="EndOfStreamException">The end of the stream is reached before filling the buffer.</exception>
-        /// <remarks>
-        /// This method is a polyfill for platforms (prior to .NET 7) that do not have the ReadExactlyAsync method.
-        /// </remarks>
-        public static async Task ReadExactlyAsync(this Stream stream, byte[] buffer, int offset, int count, CancellationToken cancellationToken = default)
-        {
-            if (stream is null)
-                throw new ArgumentNullException(nameof(stream));
-            if (buffer is null)
-                throw new ArgumentNullException(nameof(buffer));
-            if (offset < 0)
-                throw new ArgumentOutOfRangeException(nameof(offset));
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count));
-            if (buffer.Length - offset < count)
-                throw new ArgumentException("Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
-
-            while (count > 0)
-            {
-                int numRead = await stream.ReadAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
-
-                if (numRead == 0)
-                {
-                    throw new EndOfStreamException(SR.IO_EOF_ReadBeyondEOF);
-                }
-
-                count -= numRead;
-                offset += numRead;
-            }
-        }
-#endif
 
         /// <summary>
         /// Writes a sequence of bytes to the current stream and advances the current

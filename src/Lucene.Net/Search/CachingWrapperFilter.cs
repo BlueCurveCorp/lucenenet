@@ -2,9 +2,6 @@ using Lucene.Net.Diagnostics;
 using Lucene.Net.Runtime.CompilerServices;
 using Lucene.Net.Support.Threading;
 using Lucene.Net.Util;
-#if !FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR
-using Lucene.Net.Util.Events;
-#endif
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JCG = J2N.Collections.Generic;
@@ -43,10 +40,6 @@ namespace Lucene.Net.Search
     {
         private readonly Filter filter;
 
-#if !FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR
-        // LUCENENET specific: Add weak event handler for .NET Standard 2.0 and .NET Framework, since we don't have an enumerator to use
-        private readonly IEventAggregator eventAggregator = new EventAggregator();
-#endif
         private readonly ConditionalWeakTable<object, DocIdSet> cache = new ConditionalWeakTable<object, DocIdSet>();
 
         /// <summary>
@@ -127,22 +120,7 @@ namespace Lucene.Net.Search
                 missCount++;
                 docIdSet = DocIdSetToCache(filter.GetDocIdSet(context, null), reader);
                 if (Debugging.AssertsEnabled) Debugging.Assert(docIdSet.IsCacheable);
-#if FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR
                 cache.AddOrUpdate(key, docIdSet);
-#else
-                UninterruptableMonitor.Enter(cache);
-                try
-                {
-                    cache.AddOrUpdate(key, docIdSet);
-                    // LUCENENET specific - since .NET Standard 2.0 and .NET Framework don't have a ConditionalWeakTable enumerator,
-                    // we use a weak event to retrieve the DocIdSet instances
-                    reader.SubscribeToGetCacheKeysEvent(eventAggregator.GetEvent<WeakEvents.GetCacheKeysEvent>());
-                }
-                finally
-                {
-                    UninterruptableMonitor.Exit(cache);
-                }
-#endif
             }
 
             return docIdSet == EMPTY_DOCIDSET ? null : BitsFilteredDocIdSet.Wrap(docIdSet, acceptDocs);
@@ -192,20 +170,8 @@ namespace Lucene.Net.Search
             try
             {
                 docIdSets = new JCG.List<DocIdSet>();
-#if FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR
                 foreach (var pair in cache)
                     docIdSets.Add(pair.Value);
-#else
-                // LUCENENET specific - since .NET Standard 2.0 and .NET Framework don't have a ConditionalWeakTable enumerator,
-                // we use a weak event to retrieve the DocIdSet instances. We look each of these up here to avoid the need
-                // to attach events to the DocIdSet instances themselves (thus using the existing IndexReader.Dispose()
-                // method to detach the events rather than using a finalizer in DocIdSet to ensure they are cleaned up).
-                var e = new WeakEvents.GetCacheKeysEventArgs();
-                eventAggregator.GetEvent<WeakEvents.GetCacheKeysEvent>().Publish(e);
-                foreach (var key in e.CacheKeys)
-                    if (cache.TryGetValue(key, out DocIdSet value))
-                        docIdSets.Add(value);
-#endif
             }
             finally
             {

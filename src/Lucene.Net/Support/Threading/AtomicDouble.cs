@@ -43,9 +43,6 @@ namespace Lucene.Net.Support.Threading
     /// Note that this class is set up to mimic <c>double</c> in Java, rather than the J2N <see cref="J2N.Numerics.Double"/> class.
     /// This may cause differences in comparing NaN values.
     /// </remarks>
-#if FEATURE_SERIALIZABLE
-    [Serializable]
-#endif
     [DebuggerDisplay("{Value}")]
     internal class AtomicDouble : Number, IEquatable<AtomicDouble>, IEquatable<double>, IFormattable, IConvertible
     {

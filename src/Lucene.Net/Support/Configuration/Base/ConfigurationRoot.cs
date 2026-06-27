@@ -14,11 +14,9 @@ namespace Lucene.Net.Configuration
     /// The root node for a configuration.
     /// </summary>
     internal class ConfigurationRoot : IConfiguration
-#if FEATURE_ICONFIGURATIONROOT_PROVIDERS
         // LUCENENET: Since the IConfigurationRoot interface changed after version 1.1.2, we cannot implement it here
         // or upgrading the version of Microsoft.Extensions.Configuration will fail.
         , IConfigurationRoot
-#endif
     {
         private readonly IList<IConfigurationProvider> _providers;
         private ConfigurationReloadToken _changeToken = new ConfigurationReloadToken();

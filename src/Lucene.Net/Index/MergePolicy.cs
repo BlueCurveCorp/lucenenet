@@ -6,10 +6,7 @@ using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-using System.ComponentModel;
-using System.Runtime.Serialization;
-#endif
+
 using System.Text;
 using JCG = J2N.Collections.Generic;
 
@@ -492,11 +489,6 @@ namespace Lucene.Net.Index
         /// Exception thrown if there are any problems while
         /// executing a merge.
         /// </summary>
-        // LUCENENET: It is no longer good practice to use binary serialization.
-        // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-        [Serializable]
-#endif
         public class MergeException : Exception, IRuntimeException // LUCENENET specific: Added IRuntimeException for identification of the Java superclass in .NET
         {
             private readonly Directory dir; // LUCENENET: marked readonly
@@ -523,20 +515,6 @@ namespace Lucene.Net.Index
             {
             }
 
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-            /// <summary>
-            /// Initializes a new instance of this class with serialized data.
-            /// </summary>
-            /// <param name="info">The <see cref="SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
-            /// <param name="context">The <see cref="StreamingContext"/> that contains contextual information about the source or destination.</param>
-            [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            protected MergeException(SerializationInfo info, StreamingContext context)
-                : base(info, context)
-            {
-            }
-#endif
-
             /// <summary>
             /// Returns the <see cref="Store.Directory"/> of the index that hit
             /// the exception.
@@ -550,11 +528,6 @@ namespace Lucene.Net.Index
         /// <c>false</c>.  Normally this exception is
         /// privately caught and suppressed by <see cref="IndexWriter"/>.
         /// </summary>
-        // LUCENENET: It is no longer good practice to use binary serialization.
-        // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-        [Serializable]
-#endif
         public class MergeAbortedException : IOException
         {
             /// <summary>
@@ -573,19 +546,6 @@ namespace Lucene.Net.Index
             {
             }
 
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-            /// <summary>
-            /// Initializes a new instance of this class with serialized data.
-            /// </summary>
-            /// <param name="info">The <see cref="SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
-            /// <param name="context">The <see cref="StreamingContext"/> that contains contextual information about the source or destination.</param>
-            [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            protected MergeAbortedException(SerializationInfo info, StreamingContext context)
-                : base(info, context)
-            {
-            }
-#endif
         }
 
         /// <summary>

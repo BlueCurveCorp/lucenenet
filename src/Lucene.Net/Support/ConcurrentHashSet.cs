@@ -47,9 +47,7 @@ namespace Lucene.Net.Support
     /// </remarks>
     [DebuggerDisplay("Count = {Count}")]
     internal class ConcurrentHashSet<T> : ISet<T>, IReadOnlyCollection<T>, ICollection<T>
-#if FEATURE_READONLYSET
         , IReadOnlySet<T>
-#endif
     {
         private const int DefaultCapacity = 31;
         private const int MaxLockNumber = 1024;

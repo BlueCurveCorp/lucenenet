@@ -30,14 +30,6 @@ namespace Lucene.Net
 
     public class QueueExtensionsTests : LuceneTestCase
     {
-#if !FEATURE_QUEUE_TRYDEQUEUE_TRYPEEK
-        [Test, LuceneNetSpecific]
-        public void TryDequeue_ThrowsWhenQueueNull()
-        {
-            Queue<int> queue = null;
-            Assert.Throws<ArgumentNullException>(() => queue.TryDequeue(out int _));
-        }
-
         [Test, LuceneNetSpecific]
         public void TryDequeue_QueueEmpty()
         {
@@ -61,13 +53,6 @@ namespace Lucene.Net
         }
 
         [Test, LuceneNetSpecific]
-        public void TryPeek_ThrowsWhenQueueNull()
-        {
-            Queue<int> queue = null;
-            Assert.Throws<ArgumentNullException>(() => queue.TryPeek(out int _));
-        }
-
-        [Test, LuceneNetSpecific]
         public void TryPeek_QueueEmpty()
         {
             Queue<int> queue = new Queue<int>();
@@ -88,6 +73,5 @@ namespace Lucene.Net
             Assert.AreEqual(result, item);
             Assert.AreEqual(queue.Count, countBefore);
         }
-#endif
     }
 }

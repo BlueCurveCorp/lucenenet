@@ -1,9 +1,6 @@
 using System;
 using System.IO;
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-using System.ComponentModel;
-using System.Runtime.Serialization;
-#endif
+
 
 namespace Lucene.Net.Index
 {
@@ -28,11 +25,7 @@ namespace Lucene.Net.Index
     /// This exception is thrown when Lucene detects
     /// an inconsistency in the index.
     /// </summary>
-    // LUCENENET: It is no longer good practice to use binary serialization.
-    // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-    [Serializable]
-#endif
+
     public class CorruptIndexException : IOException // LUCENENENET specific - made public instead of internal because there are public subclasses
     {
         /// <summary>
@@ -49,18 +42,5 @@ namespace Lucene.Net.Index
         {
         }
 
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-        /// <summary>
-        /// Initializes a new instance of this class with serialized data.
-        /// </summary>
-        /// <param name="info">The <see cref="SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="StreamingContext"/> that contains contextual information about the source or destination.</param>
-        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected CorruptIndexException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
-#endif
     }
 }

@@ -48,40 +48,6 @@
     <PublishDir Condition="'$(AlternatePublishRootDirectory)' != ''">$(AlternatePublishRootDirectory)/$(TargetFramework)/$(MSBuildProjectName)/</PublishDir>
   </PropertyGroup>
 
-  <!-- All FEATURE_* constants are always defined on net10.0 -->
-  <!-- These will be removed incrementally as #if FEATURE_ blocks are cleaned from source code -->
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);FEATURE_ASPNETCORE_TESTHOST</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_STREAM_READEXACTLY</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_RANDOM_NEXTINT64_NEXTSINGLE</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_RANDOMACCESS_READ</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_SPANFORMATTABLE</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_SUPPORTEDOSPLATFORMATTRIBUTE</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_READONLYSET</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_COMPAREINFO_GETSORTKEY_SPAN</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_PROCESS_KILL_ENTIREPROCESSTREE</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_STRING_CONCAT_READONLYSPAN</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_CULTUREINFO_CURRENTCULTURE_SETTER</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_ENCODINGPROVIDERS</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_ARRAY_FILL</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_CONDITIONALWEAKTABLE_ADDORUPDATE</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_ENCODING_GETSTRING_READONLYSPAN</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_NUMBER_PARSE_READONLYSPAN</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_STREAM_READ_SPAN</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_STRINGBUILDER_APPEND_READONLYSPAN</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_QUEUE_TRYDEQUEUE_TRYPEEK</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_STRING_CONTAINS_STRINGCOMPARISON</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_ICONFIGURATIONROOT_PROVIDERS</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_ASSEMBLY_GETCALLINGASSEMBLY</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_FILESTREAM_LOCK</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_TEXTWRITER_CLOSE</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_TYPE_GETMETHOD__BINDINGFLAGS_PARAMS</DefineConstants>
-    <DefineConstants>$(DefineConstants);FEATURE_OPENNLP</DefineConstants>
-  </PropertyGroup>
-
   <PropertyGroup>
     <DebugType>portable</DebugType>
   </PropertyGroup>

@@ -30,11 +30,7 @@ namespace Lucene.Net
 
             char[] chars = text is CharTermAttribute c ? c.termBuffer : text.Buffer;
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref MemoryMarshal.GetArrayDataReference(chars), text.Length);
-#else
-            return new ReadOnlySpan<char>(chars, 0, text.Length);
-#endif
         }
 
         /// <summary>
@@ -63,12 +59,8 @@ namespace Lucene.Net
 
             char[] chars = text is CharTermAttribute c ? c.termBuffer : text.Buffer;
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chars),
                 (nint)(uint)start /* force zero-extension */), text.Length - start);
-#else
-            return new ReadOnlySpan<char>(chars, start, text.Length - start);
-#endif
         }
 
         /// <summary>
@@ -107,12 +99,8 @@ namespace Lucene.Net
 
             char[] chars = text is CharTermAttribute c ? c.termBuffer : text.Buffer;
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chars),
                 (nint)(uint)start /* force zero-extension */), length);
-#else
-            return new ReadOnlySpan<char>(chars, start, length);
-#endif
         }
 
         /// <summary>
@@ -145,12 +133,8 @@ namespace Lucene.Net
 
             char[] chars = text is CharTermAttribute c ? c.termBuffer : text.Buffer;
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chars),
                 (nint)(uint)actualIndex /* force zero-extension */), text.Length - actualIndex);
-#else
-            return new ReadOnlySpan<char>(chars, actualIndex, text.Length - actualIndex);
-#endif
         }
 
         /// <summary>
@@ -184,12 +168,8 @@ namespace Lucene.Net
             (int start, int length) = range.GetOffsetAndLength(text.Length);
             char[] chars = text is CharTermAttribute c ? c.termBuffer : text.Buffer;
 
-#if FEATURE_MEMORYMARSHAL_CREATEREADONLYSPAN && FEATURE_MEMORYMARSHAL_GETARRAYDATAREFERENCE
             return MemoryMarshal.CreateReadOnlySpan<char>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chars),
                 (nint)(uint)start /* force zero-extension */), length);
-#else
-            return new ReadOnlySpan<char>(chars, start, length);
-#endif
         }
 
         #endregion AsSpan (ICharTermAttribute)

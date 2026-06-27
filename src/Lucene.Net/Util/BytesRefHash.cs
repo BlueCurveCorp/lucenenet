@@ -3,10 +3,7 @@ using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-using System.ComponentModel;
-using System.Runtime.Serialization;
-#endif
+
 
 namespace Lucene.Net.Util
 {
@@ -571,11 +568,6 @@ namespace Lucene.Net.Util
         /// Thrown if a <see cref="BytesRef"/> exceeds the <see cref="BytesRefHash"/> limit of
         /// <see cref="ByteBlockPool.BYTE_BLOCK_SIZE"/>-2.
         /// </summary>
-        // LUCENENET: It is no longer good practice to use binary serialization.
-        // See: https://github.com/dotnet/corefx/issues/23584#issuecomment-325724568
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-        [Serializable]
-#endif
         public class MaxBytesLengthExceededException : Exception, IRuntimeException // LUCENENET specific: Added IRuntimeException for identification of the Java superclass in .NET
         {
             internal MaxBytesLengthExceededException(string message)
@@ -583,19 +575,7 @@ namespace Lucene.Net.Util
             {
             }
 
-#if FEATURE_SERIALIZABLE_EXCEPTIONS
-            /// <summary>
-            /// Initializes a new instance of this class with serialized data.
-            /// </summary>
-            /// <param name="info">The <see cref="SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
-            /// <param name="context">The <see cref="StreamingContext"/> that contains contextual information about the source or destination.</param>
-            [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            protected MaxBytesLengthExceededException(SerializationInfo info, StreamingContext context)
-                : base(info, context)
-            {
-            }
-#endif
+
         }
 
         /// <summary>

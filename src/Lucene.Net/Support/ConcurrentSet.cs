@@ -25,14 +25,8 @@ namespace Lucene.Net.Support
      * limitations under the License.
      */
 
-#if FEATURE_SERIALIZABLE
-    [Serializable]
-#endif
     internal sealed class ConcurrentSet<T> : ISet<T>, ICollection, IStructuralEquatable, IFormattable
     {
-#if FEATURE_SERIALIZABLE
-        [NonSerialized]
-#endif
         private readonly object syncRoot = new object();
         private readonly ISet<T> set;
 

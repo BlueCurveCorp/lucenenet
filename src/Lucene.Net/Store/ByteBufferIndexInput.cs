@@ -407,14 +407,12 @@ namespace Lucene.Net.Store
                         // LUCENENET: Since .NET will GC types that go out of scope automatically,
                         // this isn't strictly necessary. However, we are doing it anyway when
                         // the enumerator is available (.NET Standard 2.1+)
-#if FEATURE_CONDITIONALWEAKTABLE_ENUMERATOR
                         foreach (var pair in clones)
                         {
                             if (Debugging.AssertsEnabled) Debugging.Assert(pair.Key.isClone);
                             pair.Key.UnsetBuffers();
                         }
                         this.clones.Clear();
-#endif
                         this.clones = null; // LUCENENET: de-reference the table so it can be GC'd
                     }
 

@@ -345,9 +345,6 @@ namespace Lucene.Net.Store
                             mapName: null,
                             capacity: capacity,
                             access: MemoryMappedFileAccess.Read,
-#if FEATURE_MEMORYMAPPEDFILESECURITY
-                            memoryMappedFileSecurity: null,
-#endif
                             inheritability: HandleInheritability.Inheritable,
                             leaveOpen: true); // LUCENENET: We explicitly dispose the FileStream separately.
                         break;

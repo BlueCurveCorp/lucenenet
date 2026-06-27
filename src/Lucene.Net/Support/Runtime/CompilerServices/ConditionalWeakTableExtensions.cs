@@ -26,7 +26,6 @@ namespace Lucene.Net.Runtime.CompilerServices
 
     internal static class ConditionalWeakTableExtensions
     {
-#if !FEATURE_CONDITIONALWEAKTABLE_ADDORUPDATE
         /// <summary>
         /// AddOrUpdate-like patch for .NET Standard 2.0 and .NET Framework. Note this method is not threadsafe,
         /// so will require external locking to synchronize with other <see cref="ConditionalWeakTable{TKey, TValue}"/> operations.
@@ -48,6 +47,5 @@ namespace Lucene.Net.Runtime.CompilerServices
                 table.Remove(key);
             table.Add(key, value);
         }
-#endif
     }
 }
