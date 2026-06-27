@@ -53,23 +53,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
-        framework: [net10.0, net8.0, net48, net472]
         platform: [x64]
         configuration: [Release]
-        exclude:
-          - os: ubuntu-latest
-            framework: net48
-          - os: ubuntu-latest
-            framework: net472
-          - os: macos-latest
-            framework: net48
-          - os: macos-latest
-            framework: net472
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
       DOTNET_NOLOGO: 1
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
-      BUILD_FOR_ALL_TEST_TARGET_FRAMEWORKS: 'true'
       project_path: './src/Lucene.Net.Tests.Spatial/Lucene.Net.Tests.Spatial.csproj'
       run_slow_tests: 'false'
       trx_file_name: 'TestResults.trx'
@@ -78,12 +67,6 @@ jobs:
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-
-      - name: Setup .NET 8 SDK
-        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
-        with:
-          dotnet-version: '8.0.x'
-        if: ${{ startswith(matrix.framework, 'net8.') }}
 
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
@@ -98,16 +81,16 @@ jobs:
           # '**/*.targets' includes Directory.Build.targets
           # '**/*.sln' and '*.sln' ensure root solution files are included (minimatch glitch for file extension .sln)
           # 'global.json' included for SDK version changes
-          key: nuget-${{ runner.os }}-${{ env.BUILD_FOR_ALL_TEST_TARGET_FRAMEWORKS }}-${{ hashFiles('**/*.*proj', '**/*.props', '**/*.targets', '**/*.sln', '*.sln', 'global.json') }}
+          key: nuget-${{ runner.os }}-net10.0-${{ hashFiles('**/*.*proj', '**/*.props', '**/*.targets', '**/*.sln', '*.sln', 'global.json') }}
           path: ${{ env.NUGET_PACKAGES }}
 
       - name: Restore
-        run: dotnet restore /p:TestFrameworks=${{ env.BUILD_FOR_ALL_TEST_TARGET_FRAMEWORKS }}
+        run: dotnet restore
 
       - name: Setup Environment Variables
         run: |
           $project_name = [System.IO.Path]::GetFileNameWithoutExtension($env:project_path)
-          $test_results_artifact_name = "testresults_${{matrix.os}}_${{matrix.framework}}_${{matrix.platform}}_${{matrix.configuration}}"
+          $test_results_artifact_name = "testresults_${{matrix.os}}_${{matrix.platform}}_${{matrix.configuration}}"
           $working_directory = "$env:GITHUB_WORKSPACE"
           Write-Host "Project Name: $project_name"
           Write-Host "Results Artifact Name: $test_results_artifact_name"
@@ -117,11 +100,11 @@ jobs:
           # Set the Azure DevOps default working directory env variable, so our tests only need to deal with a single env variable
           echo "SYSTEM_DEFAULTWORKINGDIRECTORY=$working_directory" | Out-File -FilePath  $env:GITHUB_ENV -Encoding utf8 -Append
           # Title for LiquidTestReports.Markdown
-          echo "title=Test Results for $project_name - ${{matrix.framework}} - ${{matrix.platform}} - ${{matrix.os}}" | Out-File -FilePath  $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "title=Test Results for $project_name - ${{matrix.platform}} - ${{matrix.os}}" | Out-File -FilePath  $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
-      - run: dotnet build "${{env.project_path}}" --configuration "${{matrix.configuration}}" --framework "${{matrix.framework}}" --no-restore -p:TestFrameworks=${{ env.BUILD_FOR_ALL_TEST_TARGET_FRAMEWORKS }}
+      - run: dotnet build "${{env.project_path}}" --configuration "${{matrix.configuration}}" --no-restore
         shell: bash
-      - run: dotnet test "${{env.project_path}}" --configuration "${{matrix.configuration}}" --framework "${{matrix.framework}}" --no-build --no-restore --blame-hang --blame-hang-dump-type mini --blame-hang-timeout 20minutes --logger:"console;verbosity=normal" --logger:"trx;LogFileName=${{env.trx_file_name}}" --logger:"liquid.md;LogFileName=${{env.md_file_name}};Title=${{env.title}};" --results-directory:"${{github.workspace}}/${{env.test_results_artifact_name}}/${{env.project_name}}" -- RunConfiguration.TargetPlatform=${{matrix.platform}} NUnit.DisplayName=FullName TestRunParameters.Parameter\(name=\"tests:slow\",\ value=\"\${{env.run_slow_tests}}\"\)
+      - run: dotnet test "${{env.project_path}}" --configuration "${{matrix.configuration}}" --no-build --no-restore --blame-hang --blame-hang-dump-type mini --blame-hang-timeout 20minutes --logger:"console;verbosity=normal" --logger:"trx;LogFileName=${{env.trx_file_name}}" --logger:"liquid.md;LogFileName=${{env.md_file_name}};Title=${{env.title}};" --results-directory:"${{github.workspace}}/${{env.test_results_artifact_name}}/${{env.project_name}}" -- RunConfiguration.TargetPlatform=${{matrix.platform}} NUnit.DisplayName=FullName TestRunParameters.Parameter\(name=\"tests:slow\",\ value=\"\${{env.run_slow_tests}}\"\)
         shell: bash
       # upload reports as build artifacts
       - name: Upload a Build Artifact

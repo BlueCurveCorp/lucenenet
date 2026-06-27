@@ -47,9 +47,6 @@ properties {
 
     [int]$maximumParallelJobs = 8
 
-    #test parameters
-    #The build uses Lucene.Net.Tests.Analysis.Common to determine all of the targets for the solution:
-    [string]$projectWithAllTestFrameworks = "$baseDirectory/src/Lucene.Net.Tests.Analysis.Common/Lucene.Net.Tests.Analysis.Common.csproj"
     [string]$where = ""
 }
 
@@ -116,7 +113,7 @@ task Restore -description "This task restores the dependencies" {
     Write-Host "##teamcity[progressMessage 'Restoring']"
     Write-Host "##vso[task.setprogress]'Restoring'"
     Exec {
-        & dotnet restore $solutionFile --no-dependencies /p:TestFrameworks=true
+        & dotnet restore $solutionFile --no-dependencies
     }
 }
 
@@ -137,8 +134,7 @@ task Compile -depends Clean, Init, Restore -description "This task compiles the 
                 --configuration "$configuration" `
                 --no-restore `
                 -p:Platform=$platform `
-                -p:PortableDebugTypeOnly=true `
-                -p:TestFrameworks=true # workaround for parsing issue: https://github.com/Microsoft/msbuild/issues/471#issuecomment-181963350
+                -p:PortableDebugTypeOnly=true
         }
 
         $success = $true
@@ -193,58 +189,20 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
     Write-Host "##vso[task.setprogress]'Publishing'"
 
     try {
-        $frameworksToTest = Get-FrameworksToTest
         $outDirectory = $publishDirectory
 
-        foreach ($framework in $frameworksToTest) {
+        Ensure-Directory-Exists $outDirectory
 
-            # Pause if we have queued too many parallel jobs
-            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-            if ($running.Count -ge $maximumParallelJobs) {
-                $running | Wait-Job -Any | Out-Null
-            }
+        Write-Host "Configuration: $configuration"
 
-            $logPath = "$outDirectory/$framework"
-
-            # Do this first so there is no conflict
-            Ensure-Directory-Exists $logPath
-
-            Write-Host "Configuration: $configuration"
-
-            $expression = "dotnet publish `"$solutionFile`" --configuration `"$configuration`" --framework `"$framework`""
-            $expression = "$expression --no-build --no-restore --verbosity Normal /p:TestFrameworks=true /p:Platform=`"$platform`" /p:AlternatePublishRootDirectory=`"$outDirectory`""
-            $expression = "$expression > `"$logPath/dotnet-publish.log`" 2> `"$logPath/dotnet-publish-error.log`""
-
-            $scriptBlock = {
-                param([string]$expression)
-                Write-Host $expression
-                # Note: Cannot use Psake Exec in background
-                Invoke-Expression $expression
-            }
-
-            # Execute the jobs in parallel
-            Start-Job -Name "$framework" -ScriptBlock $scriptBlock -ArgumentList @($expression) | Out-Null
+        Exec {
+            & dotnet publish "$solutionFile" --configuration "$configuration" --framework 'net10.0' --no-build --no-restore --verbosity Normal /p:Platform="$platform" /p:AlternatePublishRootDirectory="$outDirectory"
         }
-
-        # Wait for it all to complete
-        do {
-            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-            if ($running.Count -gt 0) {
-                Write-Host ""
-                Write-Host "  Almost finished, only $($running.Count) projects left to publish..." -ForegroundColor Cyan
-                $running | Wait-Job -Any | Out-Null
-            }
-        } until ($running.Count -eq 0)
-
-        # Getting the information back from the jobs (time consuming)
-        #Get-Job | Receive-Job
 
         $success = $true
     } finally {
-        #if ($success -ne $true) {
-            Delete-Added-Files $addedFiles
-            Restore-Files $backedUpFiles
-        #}
+        Delete-Added-Files $addedFiles
+        Restore-Files $backedUpFiles
     }
 }
 
@@ -259,98 +217,51 @@ task Test -depends CheckSDK, UpdateLocalSDKVersion, Restore -description "This t
 
     $testProjects = $testProjects | Sort-Object -Property FullName
 
-    $frameworksToTest = Get-FrameworksToTest
-
-    [int]$totalProjects = $testProjects.Length * $frameworksToTest.Length
-    [int]$remainingProjects = $totalProjects
-
     Ensure-Directory-Exists $testResultsDirectory
+
+    $testResultsDirectoryNet10 = "$testResultsDirectory/net10.0"
+    Ensure-Directory-Exists $testResultsDirectoryNet10
 
     foreach ($testProject in $testProjects) {
         $testName = $testProject.Directory.Name
 
-        # Call the target to get the configured test frameworks for this project. We only read the first line because MSBuild adds extra output.
-        $frameworksString = Get-SupportedTargetFrameworksString $testProject
-
         Write-Host ""
-        Write-Host "Frameworks To Test for ${testProject}: $frameworksString" -ForegroundColor Yellow
+        Write-Host "  Next Project in Queue: $testName" -ForegroundColor Yellow
 
-        if ($frameworksString -eq 'none') {
+        # Pause if we have queued too many parallel jobs
+        $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+        if ($running.Count -ge $maximumParallelJobs) {
             Write-Host ""
-            Write-Host "Skipping project '$testProject' because it is not marked with `<IsTestProject`>true`<`/IsTestProject`> and/or it contains no test frameworks for the current environment." -ForegroundColor DarkYellow
-            continue
+            Write-Host "  Running tests in parallel on $($running.Count) projects." -ForegroundColor Cyan
+            $running | Wait-Job -Any | Out-Null
         }
 
-        $frameworks = [System.Collections.Generic.HashSet[string]]::new($frameworksString -split '\s*;\s*')
-        foreach ($framework in $frameworksToTest) {
+        $testResultDirectory = "$testResultsDirectoryNet10/$testName"
+        Ensure-Directory-Exists $testResultDirectory
 
-            # If the framework is not valid for this configuration, we need to adjust our
-            # initial estimate and skip the combination.
-            if (-not $frameworks.Contains($framework)) {
-                $totalProjects--
-                $remainingProjects--
-                continue
-            }
+        $testProjectPath = $testProject.FullName
+        $testExpression = "dotnet test $testProjectPath --configuration $configuration --framework net10.0 --no-build"
+        $testExpression = "$testExpression --no-restore --blame  --blame-hang --blame-hang-dump-type mini --blame-hang-timeout 15minutes --results-directory $testResultDirectory"
 
-            Write-Host ""
-            Write-Host "  Next Project in Queue: $testName, Framework: $framework" -ForegroundColor Yellow
+        $testExpression = "$testExpression --logger:""console;verbosity=normal"""
+        $testExpression = "$testExpression --logger:""trx;LogFileName=TestResults.trx"""
 
-            # Pause if we have queued too many parallel jobs
-            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-            if ($running.Count -ge $maximumParallelJobs) {
-                Write-Host ""
-                Write-Host "  Running tests in parallel on $($running.Count) projects out of approximately $totalProjects total." -ForegroundColor Cyan
-                Write-Host "  $remainingProjects projects are waiting in the queue to run. This will take a bit, please wait..." -ForegroundColor Cyan
-                $running | Wait-Job -Any | Out-Null
-            }
-            $remainingProjects -= 1
-
-            $testResultDirectory = "$testResultsDirectory/$framework/$testName"
-            Ensure-Directory-Exists $testResultDirectory
-
-            $testProjectPath = $testProject.FullName
-            $testExpression = "dotnet test $testProjectPath --configuration $configuration --framework $framework --no-build"
-            $testExpression = "$testExpression --no-restore --blame  --blame-hang --blame-hang-dump-type mini --blame-hang-timeout 15minutes --results-directory $testResultDirectory"
-
-            # Breaking change: We need to explicitly set the logger for it to work with TeamCity.
-            # See: https://github.com/microsoft/vstest/issues/1590#issuecomment-393460921
-
-            # Log to the console normal verbosity. With the TeamCity.VSTest.TestAdapter
-            # referenced by the test DLL, this will output teamcity service messages.
-            # Also, it displays pretty user output on the console.
-            $testExpression = "$testExpression --logger:""console;verbosity=normal"""
-
-            # Also log to a file in TRX format, so we have a build artifact both when
-            # doing release inspection and on the CI server.
-            $testExpression = "$testExpression --logger:""trx;LogFileName=TestResults.trx"""
-
-            if (![string]::IsNullOrEmpty($where)) {
-                $testExpression = "$testExpression --TestCaseFilter:""$where"""
-            }
-
-            # Anything after here is test run settings, following the "--" separator
-            $testExpression = "$testExpression --"
-
-            # Specify NUnit.DisplayName to get the full test class name in the output
-            $testExpression = "$testExpression NUnit.DisplayName=FullName"
-
-            Write-Host $testExpression -ForegroundColor Magenta
-
-            $scriptBlock = {
-                param([string]$testExpression, [string]$testResultDirectory)
-                $testExpression = "$testExpression > '$testResultDirectory/dotnet-test.log' 2> '$testResultDirectory/dotnet-test-error.log'"
-                Invoke-Expression $testExpression
-            }
-
-            # Execute the jobs in parallel
-            Start-Job -Name "$testName,$framework" -ScriptBlock $scriptBlock -ArgumentList $testExpression,$testResultDirectory | Out-Null
-
-            #Invoke-Expression $testExpression
-            ## fail the build on negative exit codes (NUnit errors - if positive it is a test count or, if 1, it could be a dotnet error)
-            #if ($LASTEXITCODE -lt 0) {
-            #   throw "Test execution failed"
-            #}
+        if (![string]::IsNullOrEmpty($where)) {
+            $testExpression = "$testExpression --TestCaseFilter:""$where"""
         }
+
+        $testExpression = "$testExpression --"
+        $testExpression = "$testExpression NUnit.DisplayName=FullName"
+
+        Write-Host $testExpression -ForegroundColor Magenta
+
+        $scriptBlock = {
+            param([string]$testExpression, [string]$testResultDirectory)
+            $testExpression = "$testExpression > '$testResultDirectory/dotnet-test.log' 2> '$testResultDirectory/dotnet-test-error.log'"
+            Invoke-Expression $testExpression
+        }
+
+        Start-Job -Name "$testName,net10.0" -ScriptBlock $scriptBlock -ArgumentList $testExpression,$testResultDirectory | Out-Null
     }
 
     do {
@@ -368,7 +279,7 @@ task Test -depends CheckSDK, UpdateLocalSDKVersion, Restore -description "This t
         }
     } until ($running.Count -eq 0)
 
-    Summarize-Test-Results -FrameworksToTest $frameworksToTest
+    Summarize-Test-Results
 }
 
 function Get-Package-Version() {
@@ -415,22 +326,7 @@ function Get-Version() {
     return $version
 }
 
-function Get-FrameworksToTest() {
-    # Call the target to get the configured test frameworks for a project known to contain all of them. We only read the first line because MSBuild adds extra output.
-    $frameworksString = Get-SupportedTargetFrameworksString -ProjectPath $projectWithAllTestFrameworks
-    $frameworksToTest = $frameworksString -split '\s*;\s*'
-    Assert($frameworksToTest.Length -gt 0) "The project at $(Normalize-FileSystemSlashes "$projectWithAllTestFrameworks") contains no target frameworks. Please configure a project that includes all testable target frameworks."
-    return $frameworksToTest
-}
 
-function Get-SupportedTargetFrameworksString([Parameter(Mandatory)][string] $ProjectPath) {
-    # NOTE: This will not appear when run directly in the console with minimal verbosity. MSBuild only produces the output when using a pipe, which is what we are doing here.
-    $output = dotnet build "$ProjectPath" --verbosity minimal --nologo --no-restore /t:PrintTargetFrameworks /p:TestProjectsOnly=true /p:TestFrameworks=true 2>&1 | Out-String
-    if ($output -match 'SupportedTargetFrameworks=([^\s]+)') {
-        return $matches[1]
-    }
-    throw "Failed to determine supported target frameworks for project: $ProjectPath"
-}
 
 function Prepare-For-Build() {
     #Use only the major version as the assembly version.
@@ -586,7 +482,7 @@ function New-CountersObject ([string]$project, [string]$outcome, [int]$total, [i
     return $counters
 }
 
-function Summarize-Test-Results([string[]]$frameworksToTest) {
+function Summarize-Test-Results {
 
     # Workaround for issue when ForeGroundColor cannot be read. https://stackoverflow.com/a/26583010
     $defaultForeground = (Get-Host).UI.RawUI.ForegroundColor
@@ -594,107 +490,94 @@ function Summarize-Test-Results([string[]]$frameworksToTest) {
         $defaultForeground = 'White'
     }
 
-    foreach ($framework in $frameworksToTest) {
-        pushd $baseDirectory
-        $testReports = Get-ChildItem -Path "$testResultsDirectory/$framework" -Recurse -File -Filter "*.trx" | ForEach-Object {
-            $_.FullName
-        }
-        popd
+    pushd $baseDirectory
+    $testReports = Get-ChildItem -Path "$testResultsDirectory/net10.0" -Recurse -File -Filter "*.trx" | ForEach-Object {
+        $_.FullName
+    }
+    popd
 
-        [int]$totalCountForFramework = 0
-        [int]$executedCountForFramework = 0
-        [int]$passedCountForFramework = 0
-        [int]$failedCountForFramework = 0
-        [int]$warningCountForFramework = 0
-        [int]$inconclusiveCountForFramework = 0
-        [string]$outcomeForFramework = 'Completed'
+    [int]$totalCount = 0
+    [int]$executedCount = 0
+    [int]$passedCount = 0
+    [int]$failedCount = 0
+    [int]$warningCount = 0
+    [int]$inconclusiveCount = 0
+    [string]$outcome = 'Completed'
 
-        # HEADER FOR FRAMEWORK
+    Write-Host ""
+    Write-Host ""
+    Write-Host "**********************************************************************" -ForegroundColor Yellow
+    Write-Host "*                                                                    *" -ForegroundColor Yellow
+    Write-Host "*                        Test Summary For net10.0"  -ForegroundColor Yellow
+    Write-Host "*                                                                    *" -ForegroundColor Yellow
+    Write-Host "**********************************************************************" -ForegroundColor Yellow
 
-        Write-Host ""
-        Write-Host ""
-        Write-Host "**********************************************************************" -ForegroundColor Yellow
-        Write-Host "*                                                                    *" -ForegroundColor Yellow
-        Write-Host "*                        Test Summary For $framework"  -ForegroundColor Yellow
-        Write-Host "*                                                                    *" -ForegroundColor Yellow
-        Write-Host "**********************************************************************" -ForegroundColor Yellow
+    foreach ($testReport in $testReports) {
+        $testName = [System.IO.Path]::GetFileName([System.IO.Path]::GetDirectoryName($testReport))
+        $reader = [System.Xml.XmlReader]::Create($testReport)
+        try {
+            while ($reader.Read()) {
 
-        foreach ($testReport in $testReports) {
-            $testName = [System.IO.Path]::GetFileName([System.IO.Path]::GetDirectoryName($testReport))
-            $reader = [System.Xml.XmlReader]::Create($testReport)
-            try {
-                while ($reader.Read()) {
-
-                    if ($reader.NodeType -eq [System.Xml.XmlNodeType]::Element -and $reader.Name -eq 'ResultSummary') {
-                        $outcome = $reader.GetAttribute('outcome')
-                        if ($outcomeForFramework -eq 'Completed') {
-                            $outcomeForFramework = $outcome
-                        }
-                    }
-                    if ($reader.NodeType -eq [System.Xml.XmlNodeType]::Element -and $reader.Name -eq 'Counters') {
-                        $counters = New-CountersObject `
-                            -Project $testName `
-                            -Outcome $outcome `
-                            -Total $reader.GetAttribute('total') `
-                            -Executed $reader.GetAttribute('executed') `
-                            -Passed $reader.GetAttribute('passed') `
-                            -Failed $reader.GetAttribute('failed') `
-                            -Warning $reader.GetAttribute('warning') `
-                            -Inconclusive $reader.GetAttribute('inconclusive')
-
-                        $totalCountForFramework += $counters.Total
-                        $executedCountForFramework += $counters.Executed
-                        $passedCountForFramework += $counters.Passed
-                        $failedCountForFramework += $counters.Failed
-                        $warningCountForFramework += $counters.Warning
-                        $inconclusiveCountForFramework += $counters.Inconclusive
-                        $skippedCountForFramework += $counters.Skipped
-
-                        $format = @{Expression={$_.Project};Label='Project';Width=35},
-                            @{Expression={$_.Outcome};Label='Outcome';Width=7},
-                            @{Expression={$_.Total};Label='Total';Width=6},
-                            @{Expression={$_.Executed};Label='Executed';Width=8},
-                            @{Expression={$_.Passed};Label='Passed';Width=6},
-                            @{Expression={$_.Failed};Label='Failed';Width=6},
-                            @{Expression={$_.Warning};Label='Warning';Width=7},
-                            @{Expression={$_.Inconclusive};Label='Inconclusive';Width=14}
-
-                        if ($counters.Failed -gt 0) {
-                            $Counters | Format-Table $format
-                        }
+                if ($reader.NodeType -eq [System.Xml.XmlNodeType]::Element -and $reader.Name -eq 'ResultSummary') {
+                    $reportOutcome = $reader.GetAttribute('outcome')
+                    if ($outcome -eq 'Completed') {
+                        $outcome = $reportOutcome
                     }
                 }
+                if ($reader.NodeType -eq [System.Xml.XmlNodeType]::Element -and $reader.Name -eq 'Counters') {
+                    $counters = New-CountersObject `
+                        -Project $testName `
+                        -Outcome $outcome `
+                        -Total $reader.GetAttribute('total') `
+                        -Executed $reader.GetAttribute('executed') `
+                        -Passed $reader.GetAttribute('passed') `
+                        -Failed $reader.GetAttribute('failed') `
+                        -Warning $reader.GetAttribute('warning') `
+                        -Inconclusive $reader.GetAttribute('inconclusive')
 
-            } finally {
-                $reader.Dispose()
+                    $totalCount += $counters.Total
+                    $executedCount += $counters.Executed
+                    $passedCount += $counters.Passed
+                    $failedCount += $counters.Failed
+                    $warningCount += $counters.Warning
+                    $inconclusiveCount += $counters.Inconclusive
+
+                    $format = @{Expression={$_.Project};Label='Project';Width=35},
+                        @{Expression={$_.Outcome};Label='Outcome';Width=7},
+                        @{Expression={$_.Total};Label='Total';Width=6},
+                        @{Expression={$_.Executed};Label='Executed';Width=8},
+                        @{Expression={$_.Passed};Label='Passed';Width=6},
+                        @{Expression={$_.Failed};Label='Failed';Width=6},
+                        @{Expression={$_.Warning};Label='Warning';Width=7},
+                        @{Expression={$_.Inconclusive};Label='Inconclusive';Width=14}
+
+                    if ($counters.Failed -gt 0) {
+                        $Counters | Format-Table $format
+                    }
+                }
             }
 
+        } finally {
+            $reader.Dispose()
         }
 
-        # FOOTER FOR FRAMEWORK
-
-        #Write-Host "**********************************************************************" -ForegroundColor Magenta
-        #Write-Host "*                                                                    *" -ForegroundColor Magenta
-        #Write-Host "*                           Totals For $framework"  -ForegroundColor Magenta
-        #Write-Host "*                                                                    *" -ForegroundColor Magenta
-        #Write-Host "**********************************************************************" -ForegroundColor Magenta
-        #Write-Host ""
-        $foreground = if ($outcomeForFramework -eq 'Failed') { 'Red' } else { 'Green' }
-        Write-Host "Result: " -NoNewline; Write-Host "$outcomeForFramework" -ForegroundColor $foreground
-        Write-Host ""
-        Write-Host "Total: $totalCountForFramework"
-        Write-Host "Executed: $executedCountForFramework"
-        $foreground = if ($failedCountForFramework -gt 0) { 'Green' } else { $defaultForeground }
-        Write-Host "Passed: " -NoNewline; Write-Host "$passedCountForFramework" -ForegroundColor $foreground
-        $foreground = if ($failedCountForFramework -gt 0) { 'Red' } else { $defaultForeground }
-        Write-Host "Failed: " -NoNewline; Write-Host "$failedCountForFramework" -ForegroundColor $foreground
-        $foreground = if ($failedCountForFramework -gt 0) { 'Yellow' } else { $defaultForeground }
-        Write-Host "Warning: " -NoNewline; Write-Host "$warningCountForFramework" -ForegroundColor $foreground
-        $foreground = if ($failedCountForFramework -gt 0) { 'Cyan' } else { $defaultForeground }
-        Write-Host "Inconclusive: " -NoNewline; Write-Host "$inconclusiveCountForFramework" -ForegroundColor $foreground
-        Write-Host ""
-        Write-Host "See the .trx logs in $(Normalize-FileSystemSlashes "$testResultsDirectory/$framework") for more details." -ForegroundColor DarkCyan
     }
+
+    $foreground = if ($outcome -eq 'Failed') { 'Red' } else { 'Green' }
+    Write-Host "Result: " -NoNewline; Write-Host "$outcome" -ForegroundColor $foreground
+    Write-Host ""
+    Write-Host "Total: $totalCount"
+    Write-Host "Executed: $executedCount"
+    $foreground = if ($failedCount -gt 0) { 'Green' } else { $defaultForeground }
+    Write-Host "Passed: " -NoNewline; Write-Host "$passedCount" -ForegroundColor $foreground
+    $foreground = if ($failedCount -gt 0) { 'Red' } else { $defaultForeground }
+    Write-Host "Failed: " -NoNewline; Write-Host "$failedCount" -ForegroundColor $foreground
+    $foreground = if ($failedCount -gt 0) { 'Yellow' } else { $defaultForeground }
+    Write-Host "Warning: " -NoNewline; Write-Host "$warningCount" -ForegroundColor $foreground
+    $foreground = if ($failedCount -gt 0) { 'Cyan' } else { $defaultForeground }
+    Write-Host "Inconclusive: " -NoNewline; Write-Host "$inconclusiveCount" -ForegroundColor $foreground
+    Write-Host ""
+    Write-Host "See the .trx logs in $(Normalize-FileSystemSlashes "$testResultsDirectory/net10.0") for more details." -ForegroundColor DarkCyan
 }
 
 function Backup-Files([string[]]$paths) {

@@ -40,18 +40,9 @@ steps:
     Write-Host "configuration: $configuration"
     Write-Host "framework: $framework"
     Write-Host "publishDirectory: $publishDirectory"
-    &dotnet publish "${{ parameters.solution }}" --configuration "${{ parameters.configuration }}" --framework: "${{ parameters.framework }}" --no-build --no-restore --verbosity normal /p:TestFrameworks=true /p:Platform="${{ parameters.platform }}" /p:AlternatePublishRootDirectory="${{ parameters.publishDirectory }}"
+    &dotnet publish "${{ parameters.solution }}" --configuration "${{ parameters.configuration }}" --framework: "${{ parameters.framework }}" --no-build --no-restore --verbosity normal /p:Platform="${{ parameters.platform }}" /p:AlternatePublishRootDirectory="${{ parameters.publishDirectory }}"
   displayName: 'Publish Projects for ${{ parameters.framework }}'
   condition: and(succeeded(), ne(variables['RunTests'], 'false'))
-
-#- task: DotNetCoreCLI@2
-#  displayName: 'Publish Projects for ${{ parameters.framework }}'
-#  inputs:
-#    command: custom
-#    projects: '**/*.sln'
-#    custom: publish
-#    arguments: '--configuration "${{ parameters.configuration }}" --framework: "${{ parameters.framework }}" --no-build --no-restore --verbosity normal /p:TestFrameworks=true /p:Platform="${{ parameters.platform }}" /p:AlternatePublishRootDirectory="${{ parameters.publishDirectory }}"'
-#  condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
 - pwsh: |
     Copy-Item -Path "${{ parameters.testSettingsFilePath }}" -Destination "${{ parameters.publishDirectory }}/${{ parameters.framework }}/" -Force

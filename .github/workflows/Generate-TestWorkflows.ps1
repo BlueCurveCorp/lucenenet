@@ -37,27 +37,23 @@
     of this script file.
 
  .PARAMETER TestFrameworks
-    A string array of Dotnet target framework monikers to run the tests on. The default is
-    @('net10.0','net8.0','net472','net48').
+     A string array of Dotnet target framework monikers to run the tests on. The default is
+     @('net10.0').
 
  .PARAMETER OperatingSystems
-    A string array of Github Actions operating system monikers to run the tests on.
-    The default is @('windows-latest', 'ubuntu-latest').
+     A string array of Github Actions operating system monikers to run the tests on.
+     The default is @('windows-latest', 'ubuntu-latest').
 
  .PARAMETER TestPlatforms
-    A string array of platforms to run the tests on. Valid values are x64 and x86.
-    The default is @('x64').
+     A string array of platforms to run the tests on. Valid values are x64 and x86.
+     The default is @('x64').
 
  .PARAMETER Configurations
-    A string array of build configurations to run the tests on. The default is @('Release').
+     A string array of build configurations to run the tests on. The default is @('Release').
 
  .PARAMETER DotNet10SDKVersion
-    The SDK version of .NET 10.x to install on the build agent to be used for building and
-    testing. This SDK is always installed on the build agent. The default is 10.0.x.
-
- .PARAMETER DotNet8SDKVersion
-    The SDK version of .NET 8.x to install on the build agent to be used for building and
-    testing. This SDK is always installed on the build agent. The default is 8.0.x.
+     The SDK version of .NET 10.x to install on the build agent to be used for building and
+     testing. This SDK is always installed on the build agent. The default is 10.0.x.
 
 #>
 param(
@@ -65,7 +61,7 @@ param(
 
     [string]$RepoRoot = (Split-Path (Split-Path $PSScriptRoot)),
 
-    [string[]]$TestFrameworks = @('net10.0', 'net8.0', 'net472', 'net48'), # targets under test: net10.0, net8.0, netstandard2.0, net462
+    [string[]]$TestFrameworks = @('net10.0'),
 
     [string[]]$OperatingSystems = @('windows-latest', 'ubuntu-latest'),
 
@@ -73,9 +69,7 @@ param(
 
     [string[]]$Configurations = @('Release'),
 
-    [string]$DotNet10SDKVersion = '10.0.x',
-
-    [string]$DotNet8SDKVersion = '8.0.x'
+    [string]$DotNet10SDKVersion = '10.0.x'
 )
 
 
@@ -143,7 +137,7 @@ function Get-ProjectPathDirectories([string]$ProjectPath, [string]$RelativeRoot,
 
 function Get-SupportedTargetFrameworksString([Parameter(Mandatory)][string] $ProjectPath) {
     # NOTE: This will not appear when run directly in the console with minimal verbosity. MSBuild only produces the output when using a pipe, which is what we are doing here.
-    $output = dotnet build "$ProjectPath" --verbosity minimal --nologo --no-restore /t:PrintTargetFrameworks /p:TestProjectsOnly=true /p:TestFrameworks=true 2>&1 | Out-String
+    $output = dotnet build "$ProjectPath" --verbosity minimal --nologo --no-restore /t:PrintTargetFrameworks /p:TestProjectsOnly=true 2>&1 | Out-String
     if ($output -match 'SupportedTargetFrameworks=([^\s]+)') {
         return $matches[1]
     }
@@ -161,11 +155,10 @@ function Write-TestWorkflow(
     [string]$RelativeRoot,
     [string]$ProjectPath,
     [string[]]$Configurations = @('Release'),
-    [string[]]$TestFrameworks = @('net6.0', 'net48'),
+    [string[]]$TestFrameworks = @('net10.0'),
     [string[]]$TestPlatforms = @('x64'),
-    [string[]]$OperatingSystems = @('windows-latest', 'ubuntu-latest', 'macos-latest'),
-    [string]$DotNet10SDKVersion = $DotNet10SDKVersion,
-    [string]$DotNet8SDKVersion = $DotNet8SDKVersion) {
+    [string[]]$OperatingSystems = @('windows-latest', 'ubuntu-latest'),
+    [string]$DotNet10SDKVersion = $DotNet10SDKVersion) {
 
     $dependencies = New-Object System.Collections.Generic.HashSet[string]
     Get-ProjectDependencies $ProjectPath $RelativeRoot $dependencies
@@ -182,7 +175,6 @@ function Write-TestWorkflow(
     [bool]$isCLI = if ($projectName -eq "Lucene.Net.Tests.Cli") { $true } else { $false }       # Special case
     $luceneCliProjectPath = $projectRelativePath -replace "Lucene.Net.Tests.Cli", "lucene-cli"  # Special case
 
-    [string]$frameworks = '[' + $($TestFrameworks -join ', ') + ']'
     [string]$platforms = '[' + $($TestPlatforms -join ', ') + ']'
     [string]$oses = '[' + $($OperatingSystems -join ', ') + ']'
     [string]$configurations = '[' + $($Configurations -join ', ') + ']'
@@ -248,23 +240,12 @@ jobs:
       fail-fast: false
       matrix:
         os: $oses
-        framework: $frameworks
         platform: $platforms
         configuration: $configurations
-        exclude:
-          - os: ubuntu-latest
-            framework: net48
-          - os: ubuntu-latest
-            framework: net472
-          - os: macos-latest
-            framework: net48
-          - os: macos-latest
-            framework: net472
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
       DOTNET_NOLOGO: 1
       NUGET_PACKAGES: `${{ github.workspace }}/.nuget/packages
-      BUILD_FOR_ALL_TEST_TARGET_FRAMEWORKS: 'true'
       project_path: '$projectRelativePath'"
     if ($isCLI) {
         $fileText += "
@@ -283,12 +264,6 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      - name: Setup .NET 8 SDK
-        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
-        with:
-          dotnet-version: '$DotNet8SDKVersion'
-        if: `${{ startswith(matrix.framework, 'net8.') }}
-
       - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
@@ -302,16 +277,16 @@ jobs:
           # '**/*.targets' includes Directory.Build.targets
           # '**/*.sln' and '*.sln' ensure root solution files are included (minimatch glitch for file extension .sln)
           # 'global.json' included for SDK version changes
-          key: nuget-`${{ runner.os }}-`${{ env.BUILD_FOR_ALL_TEST_TARGET_FRAMEWORKS }}-`${{ hashFiles('**/*.*proj', '**/*.props', '**/*.targets', '**/*.sln', '*.sln', 'global.json') }}
+          key: nuget-`${{ runner.os }}-net10.0-`${{ hashFiles('**/*.*proj', '**/*.props', '**/*.targets', '**/*.sln', '*.sln', 'global.json') }}
           path: `${{ env.NUGET_PACKAGES }}
 
       - name: Restore
-        run: dotnet restore /p:TestFrameworks=`${{ env.BUILD_FOR_ALL_TEST_TARGET_FRAMEWORKS }}
+        run: dotnet restore
 
       - name: Setup Environment Variables
         run: |
           `$project_name = [System.IO.Path]::GetFileNameWithoutExtension(`$env:project_path)
-          `$test_results_artifact_name = `"testresults_`${{matrix.os}}_`${{matrix.framework}}_`${{matrix.platform}}_`${{matrix.configuration}}`"
+          `$test_results_artifact_name = `"testresults_`${{matrix.os}}_`${{matrix.platform}}_`${{matrix.configuration}}`"
           `$working_directory = `"`$env:GITHUB_WORKSPACE`"
           Write-Host `"Project Name: `$project_name`"
           Write-Host `"Results Artifact Name: `$test_results_artifact_name`"
@@ -321,20 +296,20 @@ jobs:
           # Set the Azure DevOps default working directory env variable, so our tests only need to deal with a single env variable
           echo `"SYSTEM_DEFAULTWORKINGDIRECTORY=`$working_directory`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
           # Title for LiquidTestReports.Markdown
-          echo `"title=Test Results for `$project_name - `${{matrix.framework}} - `${{matrix.platform}} - `${{matrix.os}}`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
+          echo `"title=Test Results for `$project_name - `${{matrix.platform}} - `${{matrix.os}}`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh"
 
     if ($isCLI) {
         # Special case: Generate lucene-cli.nupkg for installation test so the test runner doesn't have to do it
         $fileText += "
-      - run: dotnet pack `"`${{env.project_under_test_path}}`" --configuration `"`${{matrix.configuration}}`" --no-restore -p:TestFrameworks=`${{ env.BUILD_FOR_ALL_TEST_TARGET_FRAMEWORKS }} -p:PortableDebugTypeOnly=true
+      - run: dotnet pack `"`${{env.project_under_test_path}}`" --configuration `"`${{matrix.configuration}}`" --no-restore -p:PortableDebugTypeOnly=true
         shell: bash"
     }
 
     $fileText += "
-      - run: dotnet build `"`${{env.project_path}}`" --configuration `"`${{matrix.configuration}}`" --framework `"`${{matrix.framework}}`" --no-restore -p:TestFrameworks=`${{ env.BUILD_FOR_ALL_TEST_TARGET_FRAMEWORKS }}
+      - run: dotnet build `"`${{env.project_path}}`" --configuration `"`${{matrix.configuration}}`" --no-restore
         shell: bash
-      - run: dotnet test `"`${{env.project_path}}`" --configuration `"`${{matrix.configuration}}`" --framework `"`${{matrix.framework}}`" --no-build --no-restore --blame-hang --blame-hang-dump-type mini --blame-hang-timeout 20minutes --logger:`"console;verbosity=normal`" --logger:`"trx;LogFileName=`${{env.trx_file_name}}`" --logger:`"liquid.md;LogFileName=`${{env.md_file_name}};Title=`${{env.title}};`" --results-directory:`"`${{github.workspace}}/`${{env.test_results_artifact_name}}/`${{env.project_name}}`" -- RunConfiguration.TargetPlatform=`${{matrix.platform}} NUnit.DisplayName=FullName TestRunParameters.Parameter\(name=\`"tests:slow\`",\ value=\`"\`${{env.run_slow_tests}}\`"\)
+      - run: dotnet test `"`${{env.project_path}}`" --configuration `"`${{matrix.configuration}}`" --no-build --no-restore --blame-hang --blame-hang-dump-type mini --blame-hang-timeout 20minutes --logger:`"console;verbosity=normal`" --logger:`"trx;LogFileName=`${{env.trx_file_name}}`" --logger:`"liquid.md;LogFileName=`${{env.md_file_name}};Title=`${{env.title}};`" --results-directory:`"`${{github.workspace}}/`${{env.test_results_artifact_name}}/`${{env.project_name}}`" -- RunConfiguration.TargetPlatform=`${{matrix.platform}} NUnit.DisplayName=FullName TestRunParameters.Parameter\(name=\`"tests:slow\`",\ value=\`"\`${{env.run_slow_tests}}\`"\)
         shell: bash
       # upload reports as build artifacts
       - name: Upload a Build Artifact
@@ -405,5 +380,5 @@ foreach ($testProject in $TestProjects) {
     Write-Host "Frameworks To Test for ${projectName}: $($frameworks -join ';')" -ForegroundColor Cyan
 
     #Write-Host "Project: $projectName"
-    Write-TestWorkflow -OutputDirectory $OutputDirectory -ProjectPath $testProject -RelativeRoot $RepoRoot -TestFrameworks $frameworks -OperatingSystems $OperatingSystems -TestPlatforms $TestPlatforms -Configurations $Configurations -DotNet8SDKVersion $DotNet8SDKVersion
+    Write-TestWorkflow -OutputDirectory $OutputDirectory -ProjectPath $testProject -RelativeRoot $RepoRoot -TestFrameworks $frameworks -OperatingSystems $OperatingSystems -TestPlatforms $TestPlatforms -Configurations $Configurations
 }

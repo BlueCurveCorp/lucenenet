@@ -37,11 +37,11 @@ namespace Lucene.Net.Analysis.OpenNlp
     {
         private const String SENTENCES = "Sentence number 1 has 6 words. Sentence number 2, 5 words.";
         private static readonly String[] SENTENCES_punc
-            = { "Sentence", "number", "1", "has", "6", "words", ".", "Sentence", "number", "2", ",", "5", "words", "." };
-        private static readonly int[] SENTENCES_startOffsets = { 0, 9, 16, 18, 22, 24, 29, 31, 40, 47, 48, 50, 52, 57 };
-        private static readonly int[] SENTENCES_endOffsets = { 8, 15, 17, 21, 23, 29, 30, 39, 46, 48, 49, 51, 57, 58 };
+            = ["Sentence", "number", "1", "has", "6", "words", ".", "Sentence", "number", "2", ",", "5", "words", "."];
+        private static readonly int[] SENTENCES_startOffsets = [0, 9, 16, 18, 22, 24, 29, 31, 40, 47, 48, 50, 52, 57];
+        private static readonly int[] SENTENCES_endOffsets = [8, 15, 17, 21, 23, 29, 30, 39, 46, 48, 49, 51, 57, 58];
         private static readonly String[] SENTENCES_chunks
-            = { "B-NP", "I-NP", "I-NP", "B-VP", "B-NP", "I-NP", "O", "B-NP", "I-NP", "I-NP", "O", "B-NP", "I-NP", "O" };
+            = ["B-NP", "I-NP", "I-NP", "B-VP", "B-NP", "I-NP", "O", "B-NP", "I-NP", "I-NP", "O", "B-NP", "I-NP", "O"];
 
         private const String sentenceModelFile = "en-test-sent.bin";
         private const String tokenizerModelFile = "en-test-tokenizer.bin";
