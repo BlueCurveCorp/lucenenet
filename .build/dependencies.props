@@ -73,6 +73,7 @@
     <NUnitPackageVersion>3.14.0</NUnitPackageVersion>
     <RandomizedTestingGeneratorsPackageVersion>2.7.8</RandomizedTestingGeneratorsPackageVersion>
     <SharpZipLibPackageVersion>1.4.2</SharpZipLibPackageVersion>
+    <SystemTextEncodingCodePagesPackageVersion>10.0.9</SystemTextEncodingCodePagesPackageVersion>
     <SpanToolsValueStringBuilderGeneratorPackageVersion>1.0.0-alpha.113</SpanToolsValueStringBuilderGeneratorPackageVersion>
     <Spatial4nPackageVersion>0.4.1.1</Spatial4nPackageVersion>
     <TimeZoneConverterPackageVersion>6.1.0</TimeZoneConverterPackageVersion>
